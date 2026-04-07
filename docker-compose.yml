@@ -1,0 +1,69 @@
+# docker-compose.yml
+version: '3.9'
+
+services:
+  redpanda:
+    image: redpandadata/redpanda:v23.3.6
+    command:
+      - redpanda start
+      - --smp 1
+      - --memory 1G
+      - --reserve-memory 0M
+      - --overprovisioned
+      - --node-id 0
+      - --kafka-addr PLAINTEXT://0.0.0.0:29092,OUTSIDE://0.0.0.0:9092
+      - --advertise-kafka-addr PLAINTEXT://redpanda:29092,OUTSIDE://localhost:9092
+    ports:
+      - "9092:9092"
+      - "8081:8081"    # Schema Registry
+      - "8082:8082"    # REST Proxy
+      - "9644:9644"    # Admin API
+    volumes:
+      - redpanda_data:/var/lib/redpanda/data
+
+  redpanda-console:
+    image: redpandadata/console:v2.3.8
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_BROKERS: redpanda:29092
+    depends_on:
+      - redpanda
+
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      POSTGRES_DB: technographics
+      POSTGRES_USER: techuser
+      POSTGRES_PASSWORD: techpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/migrations:/docker-entrypoint-initdb.d
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@local.dev
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    volumes:
+      - ./infra/kubernetes/monitoring/prometheus-config.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+
+volumes:
+  redpanda_data:
+  postgres_data:
