@@ -1,180 +1,198 @@
 """
-SQLite persistence layer for the technographic scanner.
+PostgreSQL persistence layer.
 
-Manages the database schema and provides CRUD operations for
-companies and their detected technologies.
+Implements the production schema from the spec.
 """
-
 import logging
-import sqlite3
+import psycopg2
+from psycopg2.extras import RealDictCursor
+from contextlib import contextmanager
 from datetime import datetime
-from pathlib import Path
-from typing import Optional
 
 from techdetector.models import Detection, DetectionVector, ScanResult, Technology
+from techdetector.config import load_config
 
 logger = logging.getLogger(__name__)
 
-_DEFAULT_DB_PATH = Path("./data/techdetector.db")
-
-_SCHEMA_SQL = """
-CREATE TABLE IF NOT EXISTS companies (
-    domain TEXT PRIMARY KEY,
-    first_scanned_at TIMESTAMP NOT NULL,
-    last_scanned_at TIMESTAMP NOT NULL
+SCHEMA = """
+CREATE TABLE IF NOT EXISTS scanned_companies (
+    canonical_domain VARCHAR(255) PRIMARY KEY,
+    corporate_name VARCHAR(255),
+    last_successful_crawl TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS detections (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    domain TEXT NOT NULL,
-    technology_id TEXT NOT NULL,
-    technology_name TEXT NOT NULL,
-    category TEXT NOT NULL,
-    detection_vector TEXT NOT NULL,
+CREATE TABLE IF NOT EXISTS technology_installations (
+    id SERIAL PRIMARY KEY,
+    canonical_domain VARCHAR(255) NOT NULL REFERENCES scanned_companies(canonical_domain),
+    technology_identifier VARCHAR(100) NOT NULL,
+    detection_vector VARCHAR(50) NOT NULL,
     evidence TEXT,
-    first_detected_at TIMESTAMP NOT NULL,
-    last_verified_at TIMESTAMP NOT NULL,
-    FOREIGN KEY (domain) REFERENCES companies(domain),
-    UNIQUE(domain, technology_id)
+    category VARCHAR(50),
+    initial_detection_date TIMESTAMP NOT NULL DEFAULT NOW(),
+    latest_verification_date TIMESTAMP NOT NULL DEFAULT NOW(),
+    UNIQUE(canonical_domain, technology_identifier)
 );
+
+CREATE INDEX IF NOT EXISTS idx_tech_by_vector 
+ON technology_installations(detection_vector);
+
+CREATE INDEX IF NOT EXISTS idx_tech_by_tech_id 
+ON technology_installations(technology_identifier);
 """
 
+@contextmanager
+def get_connection():
+    config = load_config()
+    conn = psycopg2.connect(config.database_url, cursor_factory=RealDictCursor)
+    try:
+        yield conn
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        logger.error(f"Database error: {e}")
+        raise
+    finally:
+        conn.close()
 
-def init_db(db_path: Optional[str] = None) -> sqlite3.Connection:
-    """Create the database and tables if they don't exist.
+def init_db():
+    """Create tables if they don't exist."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(SCHEMA)
+            logger.info("Database tables initialized.")
 
-    Args:
-        db_path: Path to the SQLite database file.
-                 Defaults to ``./data/techdetector.db``.
-
-    Returns:
-        An open sqlite3.Connection.
+def save_scan_result(result: ScanResult):
     """
-    path = Path(db_path) if db_path else _DEFAULT_DB_PATH
-    path.parent.mkdir(parents=True, exist_ok=True)
-
-    logger.info("Initializing database at %s", path)
-    conn = sqlite3.connect(str(path))
-    conn.row_factory = sqlite3.Row
-    conn.executescript(_SCHEMA_SQL)
-    conn.commit()
-    return conn
-
-
-def save_scan_result(conn: sqlite3.Connection, result: ScanResult) -> None:
-    """Insert or update a company and its detections.
-
-    On re-scan: updates ``last_scanned_at`` for the company and
-    ``last_verified_at`` for existing technologies.  New technologies
-    are inserted.
-
-    Args:
-        conn: Open database connection.
-        result: The ScanResult to persist.
+    Upsert company and technology detections.
+    On conflict, update latest_verification_date.
     """
-    now = result.scan_timestamp.isoformat()
+    now = result.scan_timestamp
 
-    # Upsert company
-    conn.execute(
-        """
-        INSERT INTO companies (domain, first_scanned_at, last_scanned_at)
-        VALUES (?, ?, ?)
-        ON CONFLICT(domain) DO UPDATE SET last_scanned_at = excluded.last_scanned_at
-        """,
-        (result.domain, now, now),
-    )
-
-    # Upsert detections
-    for det in result.detections:
-        conn.execute(
-            """
-            INSERT INTO detections
-                (domain, technology_id, technology_name, category,
-                 detection_vector, evidence, first_detected_at, last_verified_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(domain, technology_id) DO UPDATE SET
-                last_verified_at = excluded.last_verified_at,
-                evidence = excluded.evidence,
-                detection_vector = excluded.detection_vector
-            """,
-            (
-                result.domain,
-                det.technology.id,
-                det.technology.name,
-                det.technology.category,
-                det.vector.value,
-                det.evidence,
-                now,
-                now,
-            ),
-        )
-
-    conn.commit()
-    logger.info(
-        "Saved %d detections for %s", len(result.detections), result.domain
-    )
-
-
-def get_company_technologies(
-    conn: sqlite3.Connection, domain: str
-) -> list[Detection]:
-    """Retrieve all detected technologies for a domain.
-
-    Args:
-        conn: Open database connection.
-        domain: The domain to query.
-
-    Returns:
-        List of Detection objects from the database.
-    """
-    rows = conn.execute(
-        """
-        SELECT technology_id, technology_name, category,
-               detection_vector, evidence, first_detected_at, last_verified_at
-        FROM detections
-        WHERE domain = ?
-        ORDER BY category, technology_name
-        """,
-        (domain,),
-    ).fetchall()
-
-    detections: list[Detection] = []
-    for row in rows:
-        tech = Technology(
-            id=row["technology_id"],
-            name=row["technology_name"],
-            category=row["category"],
-        )
-        detections.append(
-            Detection(
-                technology=tech,
-                vector=DetectionVector(row["detection_vector"]),
-                evidence=row["evidence"] or "",
-                detected_at=datetime.fromisoformat(row["last_verified_at"]),
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            # Upsert company
+            cur.execute(
+                """
+                INSERT INTO scanned_companies (canonical_domain, last_successful_crawl)
+                VALUES (%s, %s)
+                ON CONFLICT (canonical_domain) 
+                DO UPDATE SET last_successful_crawl = EXCLUDED.last_successful_crawl;
+                """,
+                (result.domain, now)
             )
-        )
 
-    return detections
+            # Upsert detections
+            for det in result.detections:
+                cur.execute(
+                    """
+                    INSERT INTO technology_installations (
+                        canonical_domain, technology_identifier, detection_vector, 
+                        evidence, category, initial_detection_date, latest_verification_date
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (canonical_domain, technology_identifier)
+                    DO UPDATE SET 
+                        latest_verification_date = EXCLUDED.latest_verification_date,
+                        evidence = EXCLUDED.evidence,
+                        detection_vector = EXCLUDED.detection_vector;
+                    """,
+                    (
+                        result.domain,
+                        det.technology.id,
+                        det.vector.name,
+                        det.evidence,
+                        det.technology.category,
+                        now,
+                        now
+                    )
+                )
 
+            logger.info(f"Saved {len(result.detections)} PostgreSQL detections for {result.domain}")
 
-def get_all_companies(conn: sqlite3.Connection) -> list[dict]:
-    """List all scanned companies with scan timestamps.
+def query_by_technology(tech_id: str) -> list[dict]:
+    """Find all companies using a specific technology."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT t.canonical_domain, t.technology_identifier as technology_id, 
+                       t.detection_vector, t.category, t.evidence, 
+                       t.initial_detection_date as first_detected_at, 
+                       t.latest_verification_date as last_verified_at,
+                       c.last_successful_crawl as last_scanned_at
+                FROM technology_installations t
+                JOIN scanned_companies c ON t.canonical_domain = c.canonical_domain
+                WHERE t.technology_identifier = %s
+                ORDER BY t.canonical_domain
+                """,
+                (tech_id,)
+            )
+            return cur.fetchall()
 
-    Args:
-        conn: Open database connection.
+def query_by_vector(vector: DetectionVector) -> list[dict]:
+    """Find all detections from a specific vector (e.g., JOB_POSTING_NLP)."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT t.canonical_domain, t.technology_identifier as technology_id, 
+                       t.detection_vector, t.category, t.evidence, 
+                       t.initial_detection_date as first_detected_at, 
+                       t.latest_verification_date as last_verified_at
+                FROM technology_installations t
+                WHERE t.detection_vector = %s
+                ORDER BY t.canonical_domain, t.technology_identifier
+                """,
+                (vector.name,)
+            )
+            return cur.fetchall()
 
-    Returns:
-        List of dicts with domain, first_scanned_at, and last_scanned_at.
-    """
-    rows = conn.execute(
-        "SELECT domain, first_scanned_at, last_scanned_at FROM companies ORDER BY domain"
-    ).fetchall()
+def get_company_technologies(domain: str) -> list[Detection]:
+    """Retrieve all detected technologies for a domain."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT technology_identifier as technology_id, category,
+                       detection_vector, evidence, initial_detection_date as first_detected_at, 
+                       latest_verification_date as last_verified_at
+                FROM technology_installations
+                WHERE canonical_domain = %s
+                ORDER BY category, technology_identifier
+                """,
+                (domain,)
+            )
+            rows = cur.fetchall()
 
-    return [
-        {
-            "domain": row["domain"],
-            "first_scanned_at": row["first_scanned_at"],
-            "last_scanned_at": row["last_scanned_at"],
-        }
-        for row in rows
-    ]
+            detections = []
+            for row in rows:
+                tech = Technology(
+                    id=row["technology_id"],
+                    name=row["technology_id"].replace('_', ' ').title(),  # Approximation based on ID if name missing
+                    category=row["category"]
+                )
+                detections.append(
+                    Detection(
+                        technology=tech,
+                        vector=DetectionVector[row["detection_vector"]],
+                        evidence=row["evidence"] or "",
+                        detected_at=row["last_verified_at"]
+                    )
+                )
+
+            return detections
+
+def get_all_companies() -> list[dict]:
+    """List all scanned companies with scan timestamps."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT canonical_domain as domain, 
+                       last_successful_crawl as first_scanned_at, -- using last as an approximation
+                       last_successful_crawl as last_scanned_at
+                FROM scanned_companies
+                ORDER BY canonical_domain
+                """
+            )
+            return cur.fetchall()

@@ -14,10 +14,10 @@ from typing import Optional
 class DetectionVector(Enum):
     """Enumeration of supported detection methods."""
 
-    HTML_SOURCE = "html_source"
-    HTTP_HEADER = "http_header"
-    DNS_RECORD = "dns_record"      # Placeholder for Phase 2
-    JOB_POSTING = "job_posting"    # Placeholder for Phase 2
+    HTML_SOURCE = "HTML_SOURCE"
+    HTTP_HEADER = "HTTP_HEADER"
+    DNS_RECORD = "DNS_RECORD"
+    JOB_POSTING_NLP = "JOB_POSTING_NLP"
 
 
 @dataclass

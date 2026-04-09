@@ -6,7 +6,12 @@
       "category": "analytics",
       "detection_vectors": {
         "html": {
-          "patterns": ["UA-\\d{4,10}-\\d{1,4}", "G-[A-Z0-9]{10,}", "googletagmanager\\.com/gtag", "google-analytics\\.com/analytics\\.js"],
+          "patterns": [
+            "UA-\\d{4,10}-\\d{1,4}",
+            "G-[A-Z0-9]{10,}",
+            "googletagmanager\\.com/gtag",
+            "google-analytics\\.com/analytics\\.js"
+          ],
           "match_type": "regex"
         }
       }
@@ -17,7 +22,11 @@
       "category": "analytics",
       "detection_vectors": {
         "html": {
-          "patterns": ["cdn\\.segment\\.com", "analytics\\.js/v1", "analytics\\.min\\.js"],
+          "patterns": [
+            "cdn\\.segment\\.com",
+            "analytics\\.js/v1",
+            "analytics\\.min\\.js"
+          ],
           "match_type": "regex"
         }
       }
@@ -28,7 +37,11 @@
       "category": "analytics",
       "detection_vectors": {
         "html": {
-          "patterns": ["cdn\\.mxpnl\\.com", "mixpanel\\.com/track", "mixpanel\\.init"],
+          "patterns": [
+            "cdn\\.mxpnl\\.com",
+            "mixpanel\\.com/track",
+            "mixpanel\\.init"
+          ],
           "match_type": "regex"
         }
       }
@@ -39,7 +52,11 @@
       "category": "analytics",
       "detection_vectors": {
         "html": {
-          "patterns": ["cdn\\.amplitude\\.com", "amplitude\\.getInstance", "amplitude\\.init"],
+          "patterns": [
+            "cdn\\.amplitude\\.com",
+            "amplitude\\.getInstance",
+            "amplitude\\.init"
+          ],
           "match_type": "regex"
         }
       }
@@ -50,7 +67,11 @@
       "category": "analytics",
       "detection_vectors": {
         "html": {
-          "patterns": ["cdn\\.heapanalytics\\.com", "heap\\.load", "heapanalytics\\.com"],
+          "patterns": [
+            "cdn\\.heapanalytics\\.com",
+            "heap\\.load",
+            "heapanalytics\\.com"
+          ],
           "match_type": "regex"
         }
       }
@@ -61,7 +82,11 @@
       "category": "analytics",
       "detection_vectors": {
         "html": {
-          "patterns": ["static\\.hotjar\\.com", "hotjar\\.com/c/hotjar", "hj\\s*\\(\\s*['\"]init['\"]"],
+          "patterns": [
+            "static\\.hotjar\\.com",
+            "hotjar\\.com/c/hotjar",
+            "hj\\s*\\(\\s*['\"]init['\"]"
+          ],
           "match_type": "regex"
         }
       }
@@ -72,7 +97,11 @@
       "category": "analytics",
       "detection_vectors": {
         "html": {
-          "patterns": ["fullstory\\.com/s/fs\\.js", "window\\['\\_fs_debug'\\]", "FullStory\\.init"],
+          "patterns": [
+            "fullstory\\.com/s/fs\\.js",
+            "window\\['\\_fs_debug'\\]",
+            "FullStory\\.init"
+          ],
           "match_type": "regex"
         }
       }
@@ -83,7 +112,11 @@
       "category": "analytics",
       "detection_vectors": {
         "html": {
-          "patterns": ["cdn\\.pendo\\.io", "pendo\\.initialize", "pendo-track"],
+          "patterns": [
+            "cdn\\.pendo\\.io",
+            "pendo\\.initialize",
+            "pendo-track"
+          ],
           "match_type": "regex"
         }
       }
@@ -94,7 +127,12 @@
       "category": "marketing",
       "detection_vectors": {
         "html": {
-          "patterns": ["js\\.hs-scripts\\.com", "js\\.hsforms\\.net", "hbspt\\.forms\\.create", "hubspot\\.com"],
+          "patterns": [
+            "js\\.hs-scripts\\.com",
+            "js\\.hsforms\\.net",
+            "hbspt\\.forms\\.create",
+            "hubspot\\.com"
+          ],
           "match_type": "regex"
         }
       }
@@ -105,7 +143,11 @@
       "category": "marketing",
       "detection_vectors": {
         "html": {
-          "patterns": ["munchkin\\.marketo\\.net", "Munchkin\\.init", "marketo\\.com"],
+          "patterns": [
+            "munchkin\\.marketo\\.net",
+            "Munchkin\\.init",
+            "marketo\\.com"
+          ],
           "match_type": "regex"
         }
       }
@@ -116,7 +158,11 @@
       "category": "chat",
       "detection_vectors": {
         "html": {
-          "patterns": ["widget\\.intercom\\.io", "Intercom\\(", "intercomSettings"],
+          "patterns": [
+            "widget\\.intercom\\.io",
+            "Intercom\\(",
+            "intercomSettings"
+          ],
           "match_type": "regex"
         }
       }
@@ -127,7 +173,11 @@
       "category": "chat",
       "detection_vectors": {
         "html": {
-          "patterns": ["js\\.driftt\\.com", "drift\\.load", "drift\\.com"],
+          "patterns": [
+            "js\\.driftt\\.com",
+            "drift\\.load",
+            "drift\\.com"
+          ],
           "match_type": "regex"
         }
       }
@@ -138,7 +188,11 @@
       "category": "marketing",
       "detection_vectors": {
         "html": {
-          "patterns": ["chimpstatic\\.com", "list-manage\\.com", "mc\\.us\\d+\\.list-manage\\.com"],
+          "patterns": [
+            "chimpstatic\\.com",
+            "list-manage\\.com",
+            "mc\\.us\\d+\\.list-manage\\.com"
+          ],
           "match_type": "regex"
         }
       }
@@ -149,7 +203,11 @@
       "category": "marketing",
       "detection_vectors": {
         "html": {
-          "patterns": ["pi\\.pardot\\.com", "pardot\\.com/pd\\.js", "go\\.pardot\\.com"],
+          "patterns": [
+            "pi\\.pardot\\.com",
+            "pardot\\.com/pd\\.js",
+            "go\\.pardot\\.com"
+          ],
           "match_type": "regex"
         }
       }
@@ -160,8 +218,12 @@
       "category": "cdn",
       "detection_vectors": {
         "headers": {
-          "cf-ray": {"exists": true},
-          "server": {"contains": "cloudflare"}
+          "cf-ray": {
+            "exists": true
+          },
+          "server": {
+            "contains": "cloudflare"
+          }
         }
       }
     },
@@ -171,8 +233,12 @@
       "category": "cdn",
       "detection_vectors": {
         "headers": {
-          "x-akamai-transformed": {"exists": true},
-          "server": {"contains": "akamai"}
+          "x-akamai-transformed": {
+            "exists": true
+          },
+          "server": {
+            "contains": "akamai"
+          }
         }
       }
     },
@@ -182,9 +248,15 @@
       "category": "cdn",
       "detection_vectors": {
         "headers": {
-          "x-served-by": {"regex": "cache-"},
-          "via": {"contains": "varnish"},
-          "x-fastly-request-id": {"exists": true}
+          "x-served-by": {
+            "regex": "cache-"
+          },
+          "via": {
+            "contains": "varnish"
+          },
+          "x-fastly-request-id": {
+            "exists": true
+          }
         }
       }
     },
@@ -194,9 +266,15 @@
       "category": "cdn",
       "detection_vectors": {
         "headers": {
-          "x-amz-cf-id": {"exists": true},
-          "x-amz-cf-pop": {"exists": true},
-          "via": {"regex": "CloudFront"}
+          "x-amz-cf-id": {
+            "exists": true
+          },
+          "x-amz-cf-pop": {
+            "exists": true
+          },
+          "via": {
+            "regex": "CloudFront"
+          }
         }
       }
     },
@@ -206,8 +284,12 @@
       "category": "cdn",
       "detection_vectors": {
         "headers": {
-          "x-nf-request-id": {"exists": true},
-          "server": {"contains": "netlify"}
+          "x-nf-request-id": {
+            "exists": true
+          },
+          "server": {
+            "contains": "netlify"
+          }
         }
       }
     },
@@ -217,8 +299,12 @@
       "category": "cdn",
       "detection_vectors": {
         "headers": {
-          "x-vercel-id": {"exists": true},
-          "server": {"contains": "vercel"}
+          "x-vercel-id": {
+            "exists": true
+          },
+          "server": {
+            "contains": "vercel"
+          }
         }
       }
     },
@@ -228,7 +314,9 @@
       "category": "server",
       "detection_vectors": {
         "headers": {
-          "server": {"contains": "nginx"}
+          "server": {
+            "contains": "nginx"
+          }
         }
       }
     },
@@ -238,7 +326,9 @@
       "category": "server",
       "detection_vectors": {
         "headers": {
-          "server": {"contains": "apache"}
+          "server": {
+            "contains": "apache"
+          }
         }
       }
     },
@@ -248,7 +338,9 @@
       "category": "server",
       "detection_vectors": {
         "headers": {
-          "server": {"contains": "microsoft-iis"}
+          "server": {
+            "contains": "microsoft-iis"
+          }
         }
       }
     },
@@ -258,7 +350,9 @@
       "category": "server",
       "detection_vectors": {
         "headers": {
-          "server": {"contains": "litespeed"}
+          "server": {
+            "contains": "litespeed"
+          }
         }
       }
     },
@@ -268,7 +362,14 @@
       "category": "framework",
       "detection_vectors": {
         "html": {
-          "patterns": ["data-reactroot", "data-reactid", "__NEXT_DATA__", "react\\.production\\.min\\.js", "react-dom", "_reactRootContainer"],
+          "patterns": [
+            "data-reactroot",
+            "data-reactid",
+            "__NEXT_DATA__",
+            "react\\.production\\.min\\.js",
+            "react-dom",
+            "_reactRootContainer"
+          ],
           "match_type": "regex"
         }
       }
@@ -279,7 +380,13 @@
       "category": "framework",
       "detection_vectors": {
         "html": {
-          "patterns": ["data-v-[a-f0-9]", "vue\\.runtime\\.min\\.js", "vue\\.min\\.js", "Vue\\.config", "__vue__"],
+          "patterns": [
+            "data-v-[a-f0-9]",
+            "vue\\.runtime\\.min\\.js",
+            "vue\\.min\\.js",
+            "Vue\\.config",
+            "__vue__"
+          ],
           "match_type": "regex"
         }
       }
@@ -290,7 +397,13 @@
       "category": "framework",
       "detection_vectors": {
         "html": {
-          "patterns": ["ng-version=", "ng-app", "angular\\.min\\.js", "ng-controller", "ng-model"],
+          "patterns": [
+            "ng-version=",
+            "ng-app",
+            "angular\\.min\\.js",
+            "ng-controller",
+            "ng-model"
+          ],
           "match_type": "regex"
         }
       }
@@ -301,11 +414,18 @@
       "category": "framework",
       "detection_vectors": {
         "html": {
-          "patterns": ["__NEXT_DATA__", "_next/static", "next/dist", "__next"],
+          "patterns": [
+            "__NEXT_DATA__",
+            "_next/static",
+            "next/dist",
+            "__next"
+          ],
           "match_type": "regex"
         },
         "headers": {
-          "x-powered-by": {"contains": "next.js"}
+          "x-powered-by": {
+            "contains": "next.js"
+          }
         }
       }
     },
@@ -315,7 +435,12 @@
       "category": "framework",
       "detection_vectors": {
         "html": {
-          "patterns": ["__nuxt", "_nuxt/", "nuxt\\.config", "window\\.__NUXT__"],
+          "patterns": [
+            "__nuxt",
+            "_nuxt/",
+            "nuxt\\.config",
+            "window\\.__NUXT__"
+          ],
           "match_type": "regex"
         }
       }
@@ -326,7 +451,12 @@
       "category": "framework",
       "detection_vectors": {
         "html": {
-          "patterns": ["jquery\\.min\\.js", "jquery-\\d+\\.\\d+", "code\\.jquery\\.com", "jquery\\.com/jquery"],
+          "patterns": [
+            "jquery\\.min\\.js",
+            "jquery-\\d+\\.\\d+",
+            "code\\.jquery\\.com",
+            "jquery\\.com/jquery"
+          ],
           "match_type": "regex"
         }
       }
@@ -337,7 +467,12 @@
       "category": "framework",
       "detection_vectors": {
         "html": {
-          "patterns": ["bootstrap\\.min\\.css", "bootstrap\\.min\\.js", "cdn\\.jsdelivr\\.net/npm/bootstrap", "getbootstrap\\.com"],
+          "patterns": [
+            "bootstrap\\.min\\.css",
+            "bootstrap\\.min\\.js",
+            "cdn\\.jsdelivr\\.net/npm/bootstrap",
+            "getbootstrap\\.com"
+          ],
           "match_type": "regex"
         }
       }
@@ -348,12 +483,22 @@
       "category": "cms",
       "detection_vectors": {
         "html": {
-          "patterns": ["wp-content/", "wp-includes/", "wp-json", "/xmlrpc\\.php", "wordpress\\.org"],
+          "patterns": [
+            "wp-content/",
+            "wp-includes/",
+            "wp-json",
+            "/xmlrpc\\.php",
+            "wordpress\\.org"
+          ],
           "match_type": "regex"
         },
         "headers": {
-          "x-powered-by": {"contains": "wordpress"},
-          "link": {"regex": "wp-json"}
+          "x-powered-by": {
+            "contains": "wordpress"
+          },
+          "link": {
+            "regex": "wp-json"
+          }
         }
       }
     },
@@ -363,12 +508,21 @@
       "category": "ecommerce",
       "detection_vectors": {
         "html": {
-          "patterns": ["cdn\\.shopify\\.com", "Shopify\\.theme", "myshopify\\.com", "shopify-section"],
+          "patterns": [
+            "cdn\\.shopify\\.com",
+            "Shopify\\.theme",
+            "myshopify\\.com",
+            "shopify-section"
+          ],
           "match_type": "regex"
         },
         "headers": {
-          "x-shopid": {"exists": true},
-          "x-shardid": {"exists": true}
+          "x-shopid": {
+            "exists": true
+          },
+          "x-shardid": {
+            "exists": true
+          }
         }
       }
     },
@@ -378,7 +532,11 @@
       "category": "cms",
       "detection_vectors": {
         "html": {
-          "patterns": ["static\\.squarespace\\.com", "squarespace-cdn\\.com", "Squarespace\\.Constants"],
+          "patterns": [
+            "static\\.squarespace\\.com",
+            "squarespace-cdn\\.com",
+            "Squarespace\\.Constants"
+          ],
           "match_type": "regex"
         }
       }
@@ -389,11 +547,18 @@
       "category": "cms",
       "detection_vectors": {
         "html": {
-          "patterns": ["static\\.wixstatic\\.com", "wix\\.com", "X-Wix-", "parastorage\\.com"],
+          "patterns": [
+            "static\\.wixstatic\\.com",
+            "wix\\.com",
+            "X-Wix-",
+            "parastorage\\.com"
+          ],
           "match_type": "regex"
         },
         "headers": {
-          "x-wix-request-id": {"exists": true}
+          "x-wix-request-id": {
+            "exists": true
+          }
         }
       }
     },
@@ -403,11 +568,19 @@
       "category": "cms",
       "detection_vectors": {
         "html": {
-          "patterns": ["assets\\.website-files\\.com", "webflow\\.com", "w-nav", "w-slider", "wf-page"],
+          "patterns": [
+            "assets\\.website-files\\.com",
+            "webflow\\.com",
+            "w-nav",
+            "w-slider",
+            "wf-page"
+          ],
           "match_type": "regex"
         },
         "headers": {
-          "x-powered-by": {"contains": "webflow"}
+          "x-powered-by": {
+            "contains": "webflow"
+          }
         }
       }
     },
@@ -417,12 +590,21 @@
       "category": "cms",
       "detection_vectors": {
         "html": {
-          "patterns": ["Drupal\\.settings", "sites/default/files", "drupal\\.js", "/core/misc/drupal"],
+          "patterns": [
+            "Drupal\\.settings",
+            "sites/default/files",
+            "drupal\\.js",
+            "/core/misc/drupal"
+          ],
           "match_type": "regex"
         },
         "headers": {
-          "x-drupal-cache": {"exists": true},
-          "x-generator": {"contains": "drupal"}
+          "x-drupal-cache": {
+            "exists": true
+          },
+          "x-generator": {
+            "contains": "drupal"
+          }
         }
       }
     },
@@ -432,11 +614,18 @@
       "category": "ecommerce",
       "detection_vectors": {
         "html": {
-          "patterns": ["mage/cookies", "Magento_", "static/version", "requirejs-config\\.js"],
+          "patterns": [
+            "mage/cookies",
+            "Magento_",
+            "static/version",
+            "requirejs-config\\.js"
+          ],
           "match_type": "regex"
         },
         "headers": {
-          "x-magento-vary": {"exists": true}
+          "x-magento-vary": {
+            "exists": true
+          }
         }
       }
     },
@@ -446,7 +635,12 @@
       "category": "ecommerce",
       "detection_vectors": {
         "html": {
-          "patterns": ["wp-content/plugins/woocommerce", "wc-add-to-cart", "wc_add_to_cart_params", "woocommerce-product"],
+          "patterns": [
+            "wp-content/plugins/woocommerce",
+            "wc-add-to-cart",
+            "wc_add_to_cart_params",
+            "woocommerce-product"
+          ],
           "match_type": "regex"
         }
       }
@@ -457,11 +651,17 @@
       "category": "ecommerce",
       "detection_vectors": {
         "html": {
-          "patterns": ["cdn\\d+\\.bigcommerce\\.com", "bigcommerce\\.com/s-", "BCData"],
+          "patterns": [
+            "cdn\\d+\\.bigcommerce\\.com",
+            "bigcommerce\\.com/s-",
+            "BCData"
+          ],
           "match_type": "regex"
         },
         "headers": {
-          "x-bc-store-version": {"exists": true}
+          "x-bc-store-version": {
+            "exists": true
+          }
         }
       }
     },
@@ -471,7 +671,12 @@
       "category": "payments",
       "detection_vectors": {
         "html": {
-          "patterns": ["js\\.stripe\\.com", "Stripe\\(", "stripe\\.redirectToCheckout", "stripe-button"],
+          "patterns": [
+            "js\\.stripe\\.com",
+            "Stripe\\(",
+            "stripe\\.redirectToCheckout",
+            "stripe-button"
+          ],
           "match_type": "regex"
         }
       }
@@ -482,7 +687,12 @@
       "category": "payments",
       "detection_vectors": {
         "html": {
-          "patterns": ["paypal\\.com/sdk", "paypal\\.Buttons", "paypalobjects\\.com", "paypal-button"],
+          "patterns": [
+            "paypal\\.com/sdk",
+            "paypal\\.Buttons",
+            "paypalobjects\\.com",
+            "paypal-button"
+          ],
           "match_type": "regex"
         }
       }
@@ -493,7 +703,11 @@
       "category": "payments",
       "detection_vectors": {
         "html": {
-          "patterns": ["js\\.braintreegateway\\.com", "braintree-web", "client\\.create"],
+          "patterns": [
+            "js\\.braintreegateway\\.com",
+            "braintree-web",
+            "client\\.create"
+          ],
           "match_type": "regex"
         }
       }
@@ -504,7 +718,12 @@
       "category": "chat",
       "detection_vectors": {
         "html": {
-          "patterns": ["static\\.zdassets\\.com", "zE\\(", "zendesk\\.com/embeddable", "zopim\\.com"],
+          "patterns": [
+            "static\\.zdassets\\.com",
+            "zE\\(",
+            "zendesk\\.com/embeddable",
+            "zopim\\.com"
+          ],
           "match_type": "regex"
         }
       }
@@ -515,7 +734,11 @@
       "category": "chat",
       "detection_vectors": {
         "html": {
-          "patterns": ["widget\\.freshworks\\.com", "FreshworksWidget", "freshdesk\\.com"],
+          "patterns": [
+            "widget\\.freshworks\\.com",
+            "FreshworksWidget",
+            "freshdesk\\.com"
+          ],
           "match_type": "regex"
         }
       }
@@ -526,7 +749,11 @@
       "category": "chat",
       "detection_vectors": {
         "html": {
-          "patterns": ["client\\.crisp\\.chat", "CRISP_WEBSITE_ID", "crisp\\.chat/l\\.js"],
+          "patterns": [
+            "client\\.crisp\\.chat",
+            "CRISP_WEBSITE_ID",
+            "crisp\\.chat/l\\.js"
+          ],
           "match_type": "regex"
         }
       }
@@ -537,7 +764,11 @@
       "category": "tag_manager",
       "detection_vectors": {
         "html": {
-          "patterns": ["googletagmanager\\.com/gtm\\.js", "GTM-[A-Z0-9]{4,8}", "google_tag_manager"],
+          "patterns": [
+            "googletagmanager\\.com/gtm\\.js",
+            "GTM-[A-Z0-9]{4,8}",
+            "google_tag_manager"
+          ],
           "match_type": "regex"
         }
       }
@@ -548,7 +779,11 @@
       "category": "tag_manager",
       "detection_vectors": {
         "html": {
-          "patterns": ["tags\\.tiqcdn\\.com", "utag\\.js", "tealium\\.com"],
+          "patterns": [
+            "tags\\.tiqcdn\\.com",
+            "utag\\.js",
+            "tealium\\.com"
+          ],
           "match_type": "regex"
         }
       }
@@ -559,7 +794,10 @@
       "category": "font",
       "detection_vectors": {
         "html": {
-          "patterns": ["fonts\\.googleapis\\.com", "fonts\\.gstatic\\.com"],
+          "patterns": [
+            "fonts\\.googleapis\\.com",
+            "fonts\\.gstatic\\.com"
+          ],
           "match_type": "regex"
         }
       }
@@ -570,7 +808,13 @@
       "category": "font",
       "detection_vectors": {
         "html": {
-          "patterns": ["fontawesome", "font-awesome", "fa-solid", "fa-brands", "fa fa-"],
+          "patterns": [
+            "fontawesome",
+            "font-awesome",
+            "fa-solid",
+            "fa-brands",
+            "fa fa-"
+          ],
           "match_type": "string"
         }
       }
@@ -581,7 +825,11 @@
       "category": "security",
       "detection_vectors": {
         "html": {
-          "patterns": ["google\\.com/recaptcha", "g-recaptcha", "grecaptcha"],
+          "patterns": [
+            "google\\.com/recaptcha",
+            "g-recaptcha",
+            "grecaptcha"
+          ],
           "match_type": "regex"
         }
       }
@@ -592,7 +840,10 @@
       "category": "security",
       "detection_vectors": {
         "html": {
-          "patterns": ["hcaptcha\\.com/1/api\\.js", "h-captcha"],
+          "patterns": [
+            "hcaptcha\\.com/1/api\\.js",
+            "h-captcha"
+          ],
           "match_type": "regex"
         }
       }
@@ -603,7 +854,11 @@
       "category": "analytics",
       "detection_vectors": {
         "html": {
-          "patterns": ["cdn\\.optimizely\\.com", "optimizely\\.js", "window\\.optimizely"],
+          "patterns": [
+            "cdn\\.optimizely\\.com",
+            "optimizely\\.js",
+            "window\\.optimizely"
+          ],
           "match_type": "regex"
         }
       }
@@ -614,7 +869,11 @@
       "category": "analytics",
       "detection_vectors": {
         "html": {
-          "patterns": ["js-agent\\.newrelic\\.com", "NREUM", "newrelic\\.info"],
+          "patterns": [
+            "js-agent\\.newrelic\\.com",
+            "NREUM",
+            "newrelic\\.info"
+          ],
           "match_type": "regex"
         }
       }
@@ -625,7 +884,11 @@
       "category": "analytics",
       "detection_vectors": {
         "html": {
-          "patterns": ["datadoghq\\.com", "DD_RUM", "dd-rum"],
+          "patterns": [
+            "datadoghq\\.com",
+            "DD_RUM",
+            "dd-rum"
+          ],
           "match_type": "regex"
         }
       }
@@ -636,7 +899,11 @@
       "category": "cdn",
       "detection_vectors": {
         "html": {
-          "patterns": ["cdnjs\\.cloudflare\\.com", "cloudflare\\.com/ajax", "cf-browser-verification"],
+          "patterns": [
+            "cdnjs\\.cloudflare\\.com",
+            "cloudflare\\.com/ajax",
+            "cf-browser-verification"
+          ],
           "match_type": "regex"
         }
       }
@@ -647,7 +914,11 @@
       "category": "framework",
       "detection_vectors": {
         "html": {
-          "patterns": ["tailwindcss", "tailwind\\.min\\.css", "cdn\\.tailwindcss\\.com"],
+          "patterns": [
+            "tailwindcss",
+            "tailwind\\.min\\.css",
+            "cdn\\.tailwindcss\\.com"
+          ],
           "match_type": "regex"
         }
       }
@@ -658,7 +929,11 @@
       "category": "advertising",
       "detection_vectors": {
         "html": {
-          "patterns": ["pagead2\\.googlesyndication\\.com", "adsbygoogle", "google_ad_client"],
+          "patterns": [
+            "pagead2\\.googlesyndication\\.com",
+            "adsbygoogle",
+            "google_ad_client"
+          ],
           "match_type": "regex"
         }
       }
@@ -669,7 +944,11 @@
       "category": "marketing",
       "detection_vectors": {
         "html": {
-          "patterns": ["connect\\.facebook\\.net/en_US/fbevents\\.js", "fbq\\(", "facebook\\.com/tr"],
+          "patterns": [
+            "connect\\.facebook\\.net/en_US/fbevents\\.js",
+            "fbq\\(",
+            "facebook\\.com/tr"
+          ],
           "match_type": "regex"
         }
       }
@@ -680,7 +959,11 @@
       "category": "marketing",
       "detection_vectors": {
         "html": {
-          "patterns": ["snap\\.licdn\\.com/li\\.lms-analytics", "_linkedin_partner_id", "linkedin\\.com/px"],
+          "patterns": [
+            "snap\\.licdn\\.com/li\\.lms-analytics",
+            "_linkedin_partner_id",
+            "linkedin\\.com/px"
+          ],
           "match_type": "regex"
         }
       }
@@ -691,7 +974,11 @@
       "category": "marketing",
       "detection_vectors": {
         "html": {
-          "patterns": ["static\\.ads-twitter\\.com", "twq\\(", "twitter\\.com/i/adsct"],
+          "patterns": [
+            "static\\.ads-twitter\\.com",
+            "twq\\(",
+            "twitter\\.com/i/adsct"
+          ],
           "match_type": "regex"
         }
       }
@@ -702,8 +989,520 @@
       "category": "analytics",
       "detection_vectors": {
         "html": {
-          "patterns": ["matomo\\.js", "matomo\\.php", "piwik\\.js", "piwik\\.php"],
+          "patterns": [
+            "matomo\\.js",
+            "matomo\\.php",
+            "piwik\\.js",
+            "piwik\\.php"
+          ],
           "match_type": "regex"
+        }
+      }
+    },
+    {
+      "id": "google_workspace",
+      "name": "Google Workspace",
+      "category": "email_provider",
+      "detection_vectors": {
+        "dns": {
+          "mx": {
+            "contains": [
+              "google.com",
+              "googlemail.com"
+            ]
+          },
+          "txt": {
+            "contains": [
+              "include:_spf.google.com"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "microsoft_365",
+      "name": "Microsoft 365",
+      "category": "email_provider",
+      "detection_vectors": {
+        "dns": {
+          "mx": {
+            "contains": [
+              "mail.protection.outlook.com"
+            ]
+          },
+          "txt": {
+            "contains": [
+              "include:spf.protection.outlook.com"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "zoho_mail",
+      "name": "Zoho Mail",
+      "category": "email_provider",
+      "detection_vectors": {
+        "dns": {
+          "mx": {
+            "contains": [
+              "zoho.com"
+            ]
+          },
+          "txt": {
+            "contains": [
+              "include:zoho.com"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "fastmail",
+      "name": "Fastmail",
+      "category": "email_provider",
+      "detection_vectors": {
+        "dns": {
+          "mx": {
+            "contains": [
+              "messagingengine.com"
+            ]
+          },
+          "txt": {
+            "contains": [
+              "include:spf.messagingengine.com"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "sendgrid",
+      "name": "SendGrid",
+      "category": "email_marketing",
+      "detection_vectors": {
+        "dns": {
+          "txt": {
+            "contains": [
+              "include:sendgrid.net"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "mailgun",
+      "name": "Mailgun",
+      "category": "email_marketing",
+      "detection_vectors": {
+        "dns": {
+          "txt": {
+            "contains": [
+              "include:mailgun.org"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "postmark",
+      "name": "Postmark",
+      "category": "email_marketing",
+      "detection_vectors": {
+        "dns": {
+          "txt": {
+            "contains": [
+              "include:spf.mtasv.net"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "amazon_ses",
+      "name": "Amazon SES",
+      "category": "email_marketing",
+      "detection_vectors": {
+        "dns": {
+          "txt": {
+            "contains": [
+              "include:amazonses.com"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "proofpoint",
+      "name": "Proofpoint",
+      "category": "email_security",
+      "detection_vectors": {
+        "dns": {
+          "mx": {
+            "contains": [
+              "pphosted.com"
+            ]
+          },
+          "txt": {
+            "contains": [
+              "include:spf.proofpoint.com"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "mimecast",
+      "name": "Mimecast",
+      "category": "email_security",
+      "detection_vectors": {
+        "dns": {
+          "mx": {
+            "contains": [
+              "mimecast.com"
+            ]
+          },
+          "txt": {
+            "contains": [
+              "include:_netblocks.mimecast.com"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "barracuda",
+      "name": "Barracuda",
+      "category": "email_security",
+      "detection_vectors": {
+        "dns": {
+          "mx": {
+            "contains": [
+              "barracudanetworks.com"
+            ]
+          },
+          "txt": {
+            "contains": [
+              "include:spf.ess.barracudanetworks.com"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "aws_route53",
+      "name": "AWS Route53",
+      "category": "dns",
+      "detection_vectors": {
+        "dns": {
+          "mx": {
+            "contains": [
+              "awsdns"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "snowflake",
+      "name": "Snowflake",
+      "category": "data_warehouse",
+      "detection_vectors": {
+        "job_posting": {
+          "keywords": [
+            "snowflake",
+            "snowflake data cloud"
+          ],
+          "context_patterns": [
+            "experience with snowflake",
+            "snowflake expertise"
+          ]
+        }
+      }
+    },
+    {
+      "id": "databricks",
+      "name": "Databricks",
+      "category": "data_warehouse",
+      "detection_vectors": {
+        "job_posting": {
+          "keywords": [
+            "databricks"
+          ],
+          "context_patterns": [
+            "experience with databricks"
+          ]
+        }
+      }
+    },
+    {
+      "id": "bigquery",
+      "name": "BigQuery",
+      "category": "data_warehouse",
+      "detection_vectors": {
+        "job_posting": {
+          "keywords": [
+            "bigquery",
+            "google bigquery"
+          ],
+          "context_patterns": [
+            "experience with bigquery"
+          ]
+        }
+      }
+    },
+    {
+      "id": "dbt",
+      "name": "dbt",
+      "category": "data_tools",
+      "detection_vectors": {
+        "job_posting": {
+          "keywords": [
+            "dbt models",
+            "dbt cloud",
+            "data build tool"
+          ],
+          "context_patterns": [
+            "experience with dbt"
+          ]
+        }
+      }
+    },
+    {
+      "id": "airflow",
+      "name": "Apache Airflow",
+      "category": "orchestration",
+      "detection_vectors": {
+        "job_posting": {
+          "keywords": [
+            "airflow",
+            "airflow dags"
+          ],
+          "context_patterns": [
+            "experience with airflow",
+            "apache airflow"
+          ]
+        }
+      }
+    },
+    {
+      "id": "postgresql",
+      "name": "PostgreSQL",
+      "category": "database",
+      "detection_vectors": {
+        "job_posting": {
+          "keywords": [
+            "postgresql",
+            "postgres"
+          ],
+          "context_patterns": [
+            "experience with postgres"
+          ]
+        }
+      }
+    },
+    {
+      "id": "elasticsearch",
+      "name": "Elasticsearch",
+      "category": "database",
+      "detection_vectors": {
+        "job_posting": {
+          "keywords": [
+            "elasticsearch"
+          ],
+          "context_patterns": [
+            "experience with elasticsearch",
+            "elk stack"
+          ]
+        }
+      }
+    },
+    {
+      "id": "github_actions",
+      "name": "GitHub Actions",
+      "category": "ci_cd",
+      "detection_vectors": {
+        "job_posting": {
+          "keywords": [
+            "github actions"
+          ],
+          "context_patterns": [
+            "ci/cd using github actions"
+          ]
+        }
+      }
+    },
+    {
+      "id": "kubernetes",
+      "name": "Kubernetes",
+      "category": "infrastructure",
+      "detection_vectors": {
+        "job_posting": {
+          "keywords": [
+            "kubernetes",
+            "k8s"
+          ],
+          "context_patterns": [
+            "experience with kubernetes",
+            "managing k8s"
+          ]
+        }
+      }
+    },
+    {
+      "id": "docker",
+      "name": "Docker",
+      "category": "infrastructure",
+      "detection_vectors": {
+        "job_posting": {
+          "keywords": [
+            "docker"
+          ],
+          "context_patterns": [
+            "experience with docker",
+            "containerization"
+          ]
+        }
+      }
+    },
+    {
+      "id": "terraform",
+      "name": "Terraform",
+      "category": "infrastructure",
+      "detection_vectors": {
+        "job_posting": {
+          "keywords": [
+            "terraform"
+          ],
+          "context_patterns": [
+            "experience with terraform",
+            "infrastructure as code"
+          ]
+        }
+      }
+    },
+    {
+      "id": "aws",
+      "name": "AWS",
+      "category": "cloud",
+      "detection_vectors": {
+        "job_posting": {
+          "keywords": [
+            "aws",
+            "amazon web services"
+          ],
+          "context_patterns": [
+            "experience with aws"
+          ]
+        }
+      }
+    },
+    {
+      "id": "gcp",
+      "name": "GCP",
+      "category": "cloud",
+      "detection_vectors": {
+        "job_posting": {
+          "keywords": [
+            "gcp",
+            "google cloud platform"
+          ],
+          "context_patterns": [
+            "experience with gcp"
+          ]
+        }
+      }
+    },
+    {
+      "id": "datadog_nlp",
+      "name": "Datadog",
+      "category": "monitoring",
+      "detection_vectors": {
+        "job_posting": {
+          "keywords": [
+            "datadog"
+          ],
+          "context_patterns": [
+            "monitoring with datadog"
+          ]
+        }
+      }
+    },
+    {
+      "id": "pagerduty",
+      "name": "PagerDuty",
+      "category": "monitoring",
+      "detection_vectors": {
+        "job_posting": {
+          "keywords": [
+            "pagerduty"
+          ],
+          "context_patterns": [
+            "on-call via pagerduty"
+          ]
+        }
+      }
+    },
+    {
+      "id": "okta",
+      "name": "Okta",
+      "category": "security",
+      "detection_vectors": {
+        "job_posting": {
+          "keywords": [
+            "okta"
+          ],
+          "context_patterns": [
+            "identity management with okta"
+          ]
+        }
+      }
+    },
+    {
+      "id": "slack",
+      "name": "Slack",
+      "category": "communication",
+      "detection_vectors": {
+        "job_posting": {
+          "keywords": [
+            "slack"
+          ],
+          "context_patterns": [
+            "communication via slack"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ruby",
+      "name": "Ruby",
+      "category": "language",
+      "detection_vectors": {
+        "job_posting": {
+          "keywords": [
+            "ruby",
+            "ruby on rails"
+          ],
+          "context_patterns": [
+            "experience with ruby"
+          ]
+        }
+      }
+    },
+    {
+      "id": "go",
+      "name": "Go",
+      "category": "language",
+      "detection_vectors": {
+        "job_posting": {
+          "keywords": [
+            "golang",
+            "go programming"
+          ],
+          "context_patterns": [
+            "experience with go",
+            "experience with golang"
+          ]
         }
       }
     }
