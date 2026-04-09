@@ -1,0 +1,23 @@
+# =============================================================================
+# Python Processor Dependencies — Distributed Technographic Discovery Engine
+# =============================================================================
+#
+# These are the core dependencies for the Python processor component.
+# Install with: pip install -r requirements.txt
+#
+# In later phases, we'll add:
+#   - aiokafka       — async Kafka consumer/producer
+#   - asyncpg        — async PostgreSQL client
+#   - tldextract     — domain/subdomain parsing
+#   - wappalyzer     — technology fingerprinting rules engine
+
+# beautifulsoup4 — HTML/XML parser for extracting technology signals from
+# crawled web pages. Used to find <script> tags, <meta> generators,
+# <link> stylesheets, and other DOM-based technographic indicators.
+beautifulsoup4>=4.12.0
+
+# aiohttp — Async HTTP client for Python. Used by the processor to:
+#   - Fetch external JavaScript files for deeper library detection
+#   - Make API calls to enrichment services
+#   - Serve health check endpoints when running as a microservice
+aiohttp>=3.9.0
