@@ -1,0 +1,7 @@
+canonical_domain,technology_id,category,detection_vector,first_detected_at,last_verified_at,evidence
+stripe.com,aws,cloud,JOB_POSTING_NLP,2026-04-09T10:50:50.335185,2026-04-09T10:50:50.335185,Keyword match: 'aws'
+stripe.com,google_analytics,analytics,HTML_SOURCE,2026-04-09T10:50:50.335185,2026-04-09T10:50:50.335185,"Pattern matched: G-[A-Z0-9]{10,} -> g-alphaNextToNumber"
+stripe.com,google_workspace,email_provider,DNS_RECORD,2026-04-09T10:50:50.335185,2026-04-09T10:50:50.335185,MX record matches google.com
+stripe.com,nextjs,framework,HTML_SOURCE,2026-04-09T10:50:50.335185,2026-04-09T10:50:50.335185,Pattern matched: __NEXT_DATA__ -> __NEXT_DATA__
+stripe.com,nginx,server,HTTP_HEADER,2026-04-09T10:50:50.335185,2026-04-09T10:50:50.335185,Header match: server=nginx
+stripe.com,react,framework,HTML_SOURCE,2026-04-09T10:50:50.335185,2026-04-09T10:50:50.335185,Pattern matched: __NEXT_DATA__ -> __NEXT_DATA__

@@ -182,6 +182,65 @@ def get_company_technologies(domain: str) -> list[Detection]:
 
             return detections
 
+def get_company_detections(domain: str) -> list[dict]:
+    """Retrieve raw dictionary detections for a domain."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT technology_identifier as technology_id, category,
+                       detection_vector, evidence, initial_detection_date as first_detected_at, 
+                       latest_verification_date as last_verified_at
+                FROM technology_installations
+                WHERE canonical_domain = %s
+                ORDER BY category, technology_identifier
+                """,
+                (domain,)
+            )
+            # psycopg2 RealDictRow -> dict and datetime -> str
+            rows = []
+            for row in cur.fetchall():
+                d = dict(row)
+                d['first_detected_at'] = d['first_detected_at'].isoformat()
+                d['last_verified_at'] = d['last_verified_at'].isoformat()
+                rows.append(d)
+            return rows
+
+def query_detections(filters: dict) -> list[dict]:
+    """Query detections with optional filters."""
+    query = """
+        SELECT t.canonical_domain, t.technology_identifier as technology_id, 
+               t.detection_vector, t.category, t.evidence, 
+               t.initial_detection_date as first_detected_at, 
+               t.latest_verification_date as last_verified_at
+        FROM technology_installations t
+        WHERE 1=1
+    """
+    params = []
+    
+    if filters.get("tech"):
+        query += " AND t.technology_identifier = %s"
+        params.append(filters["tech"])
+    if filters.get("vector"):
+        query += " AND t.detection_vector = %s"
+        params.append(filters["vector"])
+    if filters.get("since"):
+        query += " AND t.latest_verification_date >= %s"
+        params.append(filters["since"])
+        
+    query += " ORDER BY t.canonical_domain, t.technology_identifier"
+    
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(query, tuple(params))
+            rows = []
+            for row in cur.fetchall():
+                d = dict(row)
+                d['first_detected_at'] = d['first_detected_at'].isoformat()
+                d['last_verified_at'] = d['last_verified_at'].isoformat()
+                rows.append(d)
+            return rows
+
 def get_all_companies() -> list[dict]:
     """List all scanned companies with scan timestamps."""
     with get_connection() as conn:

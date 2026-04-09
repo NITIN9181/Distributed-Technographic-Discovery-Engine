@@ -8,7 +8,6 @@ Usage:
     python -m techdetector.scanner init-db
 """
 
-import argparse
 import sys
 import json
 import logging
@@ -110,85 +109,7 @@ def perform_scan(url: str, active_vectors: list[str]) -> ScanResult:
     )
 
     save_scan_result(result)
-    
-    print_scan_summary(result)
     return result
 
 
-def print_scan_summary(result: ScanResult):
-    print(f"\n{'='*60}")
-    print(f"  Scan Results for: {result.domain}")
-    print(f"  Scanned at: {result.scan_timestamp.strftime('%Y-%m-%d %H:%M:%S UTC')}")
-    print(f"{'='*60}")
-    
-    if not result.detections:
-        print("\n  No technologies detected.\n")
-        return
-        
-    print(f"\n  {len(result.detections)} technologies detected:")
-    for d in result.detections:
-        print(f"   * {d.technology.name:<25} [{d.technology.category}] ({d.vector.value})")
 
-
-def print_query_results(results: list[dict]):
-    if not results:
-        print("No results found.")
-        return
-        
-    print(f"\nFound {len(results)} matches:\n")
-    for r in results:
-        v = r.get('last_verified_at', r.get('first_detected_at', ''))
-        print(f"[{r['canonical_domain']}] {r['technology_id']} via {r['detection_vector']} (Last checked: {v})")
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(prog="techdetector")
-    subparsers = parser.add_subparsers(dest="command", required=True)
-
-    # scan Subcommand
-    scan_parser = subparsers.add_parser("scan", help="Run a full or partial scan on a URL")
-    scan_parser.add_argument("url", help="URL to scan")
-    scan_parser.add_argument("--vectors", default="html,headers,dns,job_posting", help="Comma-separated vectors: html,headers,dns,job_posting")
-
-    # query Subcommand
-    query_parser = subparsers.add_parser("query", help="Query stored results")
-    query_parser.add_argument("--tech", help="Query by technology ID (e.g., snowflake)")
-    query_parser.add_argument("--vector", help="Query by vector (e.g., JOB_POSTING_NLP)")
-
-    # init-db Subcommand
-    init_parser = subparsers.add_parser("init-db", help="Initialize the database")
-
-    args = parser.parse_args()
-
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", datefmt="%H:%M:%S")
-
-    # Make config load implicit
-    load_config()
-
-    if args.command == "init-db":
-        init_database()
-        print("Database initialized successfully.")
-    elif args.command == "scan":
-        vectors = [v.strip() for v in args.vectors.split(',')]
-        perform_scan(args.url, vectors)
-    elif args.command == "query":
-        if args.tech:
-            res = query_by_technology(args.tech)
-            print_query_results(res)
-        elif args.vector:
-            # Map simple name to enum
-            v_name = args.vector.upper()
-            if v_name == "JOB_POSTING":
-                v_name = "JOB_POSTING_NLP"
-            try:
-                vec = DetectionVector[v_name]
-                res = query_by_vector(vec)
-                print_query_results(res)
-            except KeyError:
-                print(f"Invalid vector {v_name}")
-        else:
-            print("Must specify --tech or --vector")
-            query_parser.print_help()
-
-if __name__ == "__main__":
-    main()

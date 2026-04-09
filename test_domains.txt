@@ -1,0 +1,40 @@
+vercel.com
+netlify.com
+linear.app
+supabase.com
+react.dev
+
+# --- E-commerce (Shopify, Trackers, CDNs) ---
+gymshark.com
+allbirds.com
+glossier.com
+nike.com
+wayfair.com
+
+# --- B2B SaaS (Heavy Job Postings for NLP, HubSpot/Marketo) ---
+salesforce.com
+hubspot.com
+atlassian.com
+snowflake.com
+databricks.com
+
+# --- Traditional CMS (WordPress, Apache, Standard Analytics) ---
+techcrunch.com
+time.com
+wired.com
+whitehouse.gov
+ford.com
+
+# --- Strict Security / Anti-Bot (Tests 403s & Rate Limiters) ---
+nytimes.com
+zillow.com
+reddit.com
+stackoverflow.com
+airbnb.com
+
+# --- Massive DNS/Email Records (Testing your dnspython setup) ---
+google.com
+microsoft.com
+apple.com
+amazon.com
+meta.com

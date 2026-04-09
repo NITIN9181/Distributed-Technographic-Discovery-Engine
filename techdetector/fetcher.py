@@ -10,8 +10,11 @@ import logging
 from typing import Optional
 
 import requests
+import aiohttp
+from urllib.parse import urlparse
 
 from techdetector.models import FetchResult
+from techdetector.rate_limiter import RateLimiter
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +92,58 @@ def fetch_domain(url: str) -> FetchResult:
         )
     except requests.exceptions.RequestException as exc:
         logger.error("Error fetching %s: %s", url, exc)
+        return FetchResult(
+            url=url,
+            final_url=url,
+            html=None,
+            headers={},
+            status_code=0,
+            error=str(exc),
+        )
+
+def extract_domain(url: str) -> str:
+    if not url.startswith(("http://", "https://")):
+        url = f"https://{url}"
+    parsed = urlparse(url)
+    return parsed.netloc
+
+async def fetch_domain_async(
+    session: aiohttp.ClientSession, 
+    url: str,
+    rate_limiter: RateLimiter
+) -> FetchResult:
+    if not url.startswith(("http://", "https://")):
+        url = f"https://{url}"
+
+    domain = extract_domain(url)
+    await rate_limiter.wait_for_slot(domain)
+
+    logger.info("Async fetching %s", url)
+
+    try:
+        async with session.get(url, allow_redirects=True) as response:
+            html = await response.text()
+            headers = {k.lower(): v for k, v in response.headers.items()}
+            final_url = str(response.url)
+
+            logger.info(
+                "Async fetched %s → %s  (status=%d, headers=%d, html_len=%d)",
+                url,
+                final_url,
+                response.status,
+                len(headers),
+                len(html) if html else 0,
+            )
+
+            return FetchResult(
+                url=url,
+                final_url=final_url,
+                html=html,
+                headers=headers,
+                status_code=response.status,
+            )
+    except Exception as exc:
+        logger.error("Async error fetching %s: %s", url, exc)
         return FetchResult(
             url=url,
             final_url=url,

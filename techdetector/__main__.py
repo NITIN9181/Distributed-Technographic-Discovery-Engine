@@ -2,12 +2,12 @@
 Module runner for the technographic scanner.
 
 Allows the package to be invoked with:
-    python -m techdetector <url>
-    python -m techdetector --query <domain>
-    python -m techdetector --list-companies
+    python -m techdetector scan <url>
+    python -m techdetector scan-batch <file>
+    ...
 """
 
-from techdetector.scanner import main
+from techdetector.cli import cli
 
 if __name__ == "__main__":
-    main()
+    cli()
