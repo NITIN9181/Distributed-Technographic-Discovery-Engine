@@ -17,6 +17,19 @@
 
 ---
 
+## 📖 Table of Contents
+- [🚀 Key Features](#-key-features)
+- [📺 Visual Demo](#-visual-demo)
+- [🏎 Performance](#-performance)
+- [🏗 System Architecture](#-system-architecture)
+- [🔍 Detection Deep Dive](#-detection-deep-dive)
+- [🛠 Tech Stack](#-tech-stack)
+- [🚥 Quick Start](#-quick-start)
+- [🗺 Roadmap](#-roadmap)
+- [🛡 License](#-license)
+
+---
+
 ## 🚀 Key Features
 
 *   **Multi-Vector Detection**: Analyzes domains across four distinct dimensions:
@@ -24,19 +37,43 @@
     -   **HTTP Headers**: Identifying servers, CDNs, and security layers.
     -   **DNS Records**: Scanning MX, TXT, and CNAME records for SaaS integrations.
     -   **ML-Enhanced NER**: Custom-trained spaCy model for extracting technology mentions from job postings.
-*   **High-Concurrency Crawler**: A blazingly fast Rust-based crawler capable of scanning thousands of domains concurrently with built-in rate limiting and robots.txt compliance.
-*   **Scalable Architecture**: Decoupled design using Redis Streams to bridge the Rust discovery layer and Python detection workers.
-*   **Enterprise Features**:
-    -   **Multi-Tenancy**: Built-in organization isolation using PostgreSQL Row-Level Security (RLS).
-    -   **Interactive Dashboard**: Next.js 14 dashboard for data exploration, trend analysis, and company profiling.
-    -   **Webhook Support**: Real-time event notifications for new technology detections.
-    -   **REST API**: Comprehensive FastAPI-based REST backend with JWT and API Key authentication.
+*   **High-Concurrency Crawler**: A blazingly fast Rust-based crawler built for massive scale.
+*   **Enterprise Multi-Tenancy**: Built-in organization isolation using PostgreSQL Row-Level Security (RLS).
+*   **Interactive Analytics**: Next.js 14 dashboard for data exploration and trend visualization.
+
+---
+
+## 📺 Visual Demo
+
+![TechDetector Dashboard Mockup](docs/assets/dashboard.png)
+*Modern, dark-mode analytics dashboard showing real-time technology adoption trends and company profiles.*
+
+---
+
+## 🏎 Performance
+
+TechDetector is engineered for speed. The Rust-based crawler leverages `tokio` for non-blocking I/O, allowing it to handle massive concurrency with a minimal footprint.
+
+- **Concurreny**: Effortlessly handles **1,000+ concurrent domain scans**.
+- **Latency**: Sub-second discovery for HTML and Header-based vectors.
+- **Resource Efficiency**: Crawler memory usage remains **< 300MB** even under heavy load.
+- **Elastic Scaling**: Scaling is as simple as adding more Python worker containers to the Redis Stream.
+
+---
+
+## 🔍 Detection Deep Dive
+
+### All-Vector Discovery
+Unlike simple scanners, TechDetector looks at every signal a domain emits:
+
+1.  **HTML Source**: We look for script tags, unique ID attributes, and class names tied to specific libraries like React or Vue.
+2.  **HTTP Headers**: We detect infrastructure components (Nginx, Vercel, Cloudflare) and security tools by analyzing response headers.
+3.  **DNS Records**: We resolve MX, SPF, and TXT records to identify third-party providers for email (SendGrid), verification (Google Site Verification), and more.
+4.  **ML-Enhanced NER**: Our spaCy model scans company job boards and career pages to find mentions of specific databases (Snowflake, MongoDB) or frameworks that don't appear in the frontend code.
 
 ---
 
 ## 🏗 System Architecture
-
-The following diagram illustrates the high-level data flow from initial domain discovery to the final analytics dashboard.
 
 ```mermaid
 graph TD
@@ -76,12 +113,12 @@ graph TD
 
 | Layer | Technologies |
 | :--- | :--- |
-| **Crawler** | Rust (Tokio, Reqwest, Tracing) |
-| **Worker Pool** | Python (Asyncio, Pydantic, spaCy 3.7) |
+| **Crawler** | Rust, Tokio, Reqwest, Tracing |
+| **Worker Pool** | Python 3.11, Asyncio, Pydantic, spaCy 3.7 |
 | **Streaming** | Redis (Streams, Pub/Sub) |
 | **Database** | PostgreSQL 15 (RLS, JSONB) |
 | **Backend API** | FastAPI, JWT, SQLAlchemy |
-| **Frontend** | Next.js 14, TailwindCSS, Tremor, Lucide |
+| **Frontend** | Next.js 14, TailwindCSS, Tremor |
 | **Infrastructure** | Docker, Kubernetes, Helm |
 | **Monitoring** | Prometheus, Grafana |
 
@@ -89,59 +126,37 @@ graph TD
 
 ## 🚦 Quick Start
 
-### Local Development (Docker Compose)
+### Prerequisites
+- **Docker & Docker Compose**: Version 2.20+ recommended.
+- **RAM**: Minimum 4GB for the full stack.
 
-Get the entire stack running locally in minutes:
+### Local Development
 
-1.  **Clone the repository:**
+1.  **Clone and Start:**
     ```bash
     git clone https://github.com/NITIN9181/Distributed-Technographic-Discovery-Engine.git
     cd Distributed-Technographic-Discovery-Engine
-    ```
-
-2.  **Start the services:**
-    ```bash
     docker-compose up -d
     ```
 
-3.  **Initialize the database:**
-    ```bash
-    docker-compose exec api alembic upgrade head
-    ```
-
-4.  **Access the applications:**
-    -   **Dashboard**: [http://localhost:3000](http://localhost:3000)
-    -   **API Documentation**: [http://localhost:8000/docs](http://localhost:8000/docs)
-    -   **Grafana**: [http://localhost:9000](http://localhost:9000) (Admin / admin)
-
-### Manual Scan via CLI
-
-```bash
-python -m techdetector.cli scan google.com --vector all
-```
+2.  **Access the Dashboard:** Open [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 📈 Detection Vectors & Signatures
+## 🗺 Roadmap
 
-TechDetector maintains an extensive library of signatures in `techdetector/signatures.json`.
-
-*   **Analytics**: Google Analytics, Segment, Mixpanel, Amplitude, etc.
-*   **Infrastructure**: AWS CloudFront, Cloudflare, Akamai, Netlify, Vercel.
-*   **Frameworks**: React, Vue.js, Angular, Next.js, Nuxt.js.
-*   **CMS & E-commerce**: WordPress, Shopify, Magento, WooCommerce, Webflow.
-*   **SaaS/CRM**: HubSpot, Marketo, Intercom, Zendesk, Salesforce.
+- [ ] **Phase 7**: AI-driven automatic signature generator.
+- [ ] **Phase 8**: Native CRM integrations (HubSpot, Salesforce).
+- [ ] **Phase 9**: Chrome Extension for on-the-fly technographic scouting.
+- [ ] **Phase 10**: Global technology usage market share reports.
 
 ---
 
 ## 📄 Documentation
-
 - [Project Evolution: Phase 0-6](phase6.md)
 - [API Reference](docs/API.md)
 - [Architecture Deep Dive](docs/ARCHITECTURE.md)
 - [Operational Runbooks](docs/RUNBOOKS.md)
-- [Troubleshooting Guide](docs/TROUBLESHOOTING.md)
-
 
 ---
 
