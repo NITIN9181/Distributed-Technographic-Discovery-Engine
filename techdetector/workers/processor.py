@@ -1,16 +1,23 @@
 """
 Detection pipeline that processes crawl messages.
 """
-import asyncio
+
 import logging
+import time
 from .consumer import StreamConsumer, CrawlMessage
 from ..detectors import HTMLDetector, HeaderDetector, DNSDetector, JobPostingDetector
 from ..storage import save_scan_result
-from ..models import ScanResult, Detection
+from ..models import ScanResult
+from ..metrics import (
+    MESSAGES_PROCESSED,
+    MESSAGE_PROCESSING_DURATION,
+    DETECTIONS_TOTAL,
+    DB_OPERATIONS,
+)
+from ..scanner import _load_signatures
 
 logger = logging.getLogger(__name__)
 
-from ..scanner import _load_signatures
 
 class DetectionProcessor:
     def __init__(self, redis_url: str, db_url: str):
@@ -21,58 +28,83 @@ class DetectionProcessor:
         self.dns_detector = DNSDetector(signatures)
         self.job_detector = JobPostingDetector(signatures)
         self.db_url = db_url
-    
+
     async def process_message(self, msg: CrawlMessage) -> ScanResult:
         """Run all 4 detection vectors on a crawl result."""
         detections = []
-        
+
         # HTML detection
         if msg.html:
             detections.extend(self.html_detector.detect(msg.html))
-        
+
         # Header detection
         if msg.headers:
             detections.extend(self.header_detector.detect(msg.headers))
-        
+
         # DNS detection
         if msg.dns_records:
             detections.extend(self.dns_detector.detect_from_records(msg.dns_records))
-        
+
         # Job posting NLP detection
         for career_page in msg.career_pages:
-            if career_page.get('html'):
-                detections.extend(self.job_detector.detect(career_page['html']))
+            if career_page.get("html"):
+                detections.extend(self.job_detector.detect(career_page["html"]))
+
+        import datetime
+
+        scan_time = datetime.datetime.now(datetime.timezone.utc)
+        if isinstance(msg.crawled_at, str):
+            try:
+                scan_time = datetime.datetime.fromisoformat(msg.crawled_at.replace("Z", "+00:00"))
+            except Exception:
+                pass
         
         return ScanResult(
             domain=msg.domain,
-            scan_timestamp=msg.crawled_at,  # Need to ensure this is parsed appropriately if needed
+            scan_timestamp=scan_time,
             detections=detections,
             html_fetched=bool(msg.html),
             headers_captured=bool(msg.headers),
             dns_resolved=bool(msg.dns_records),
-            careers_crawled=len(msg.career_pages)
+            careers_crawled=len(msg.career_pages),
         )
-    
+
     async def run(self):
         """Main worker loop."""
         await self.consumer.ensure_group()
-        
+
         async for message in self.consumer.consume():
+            start_time = time.monotonic()
             try:
-                import datetime
-                if isinstance(message.crawled_at, str):
-                    try:
-                        message.crawled_at = datetime.datetime.fromisoformat(message.crawled_at.replace("Z", "+00:00"))
-                    except Exception:
-                        message.crawled_at = datetime.datetime.now(datetime.timezone.utc)
-                
                 result = await self.process_message(message)
-                # save_scan_result handles persistence logic
+
+                # Record per-detection metrics
+                for det in result.detections:
+                    DETECTIONS_TOTAL.labels(
+                        vector=det.vector.name,
+                        technology=det.technology.id,
+                        category=det.technology.category,
+                    ).inc()
+
+                # Persist to database
                 save_scan_result(result)
+                DB_OPERATIONS.labels(
+                    operation="save_scan_result", status="success"
+                ).inc()
+
                 await self.consumer.ack(message.message_id)
-                logger.info(f"Processed {message.domain}: {len(result.detections)} technologies")
+                MESSAGES_PROCESSED.labels(status="success").inc()
+                logger.info(
+                    f"Processed {message.domain}: {len(result.detections)} technologies"
+                )
             except Exception as e:
+                MESSAGES_PROCESSED.labels(status="error").inc()
+                DB_OPERATIONS.labels(operation="save_scan_result", status="error").inc()
                 logger.error(f"Failed to process {message.domain}: {e}")
                 import traceback
+
                 traceback.print_exc()
                 # Don't ack - message will be redelivered
+            finally:
+                duration = time.monotonic() - start_time
+                MESSAGE_PROCESSING_DURATION.observe(duration)

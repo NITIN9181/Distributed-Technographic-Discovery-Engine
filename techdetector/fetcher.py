@@ -11,7 +11,10 @@ from typing import Optional
 
 import requests
 import aiohttp
+import urllib3
 from urllib.parse import urlparse
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 from techdetector.models import FetchResult
 from techdetector.rate_limiter import RateLimiter
@@ -47,11 +50,9 @@ def fetch_domain(url: str) -> FetchResult:
     session.headers.update({"User-Agent": _USER_AGENT})
 
     try:
-        response = session.get(url, timeout=_DEFAULT_TIMEOUT, allow_redirects=True)
+        response = session.get(url, timeout=_DEFAULT_TIMEOUT, allow_redirects=True, verify=False)
         html: Optional[str] = response.text if response.text else None
-        headers: dict[str, str] = {
-            k.lower(): v for k, v in response.headers.items()
-        }
+        headers: dict[str, str] = {k.lower(): v for k, v in response.headers.items()}
         final_url: str = response.url
 
         logger.info(
@@ -101,16 +102,16 @@ def fetch_domain(url: str) -> FetchResult:
             error=str(exc),
         )
 
+
 def extract_domain(url: str) -> str:
     if not url.startswith(("http://", "https://")):
         url = f"https://{url}"
     parsed = urlparse(url)
     return parsed.netloc
 
+
 async def fetch_domain_async(
-    session: aiohttp.ClientSession, 
-    url: str,
-    rate_limiter: RateLimiter
+    session: aiohttp.ClientSession, url: str, rate_limiter: RateLimiter
 ) -> FetchResult:
     if not url.startswith(("http://", "https://")):
         url = f"https://{url}"
@@ -121,7 +122,7 @@ async def fetch_domain_async(
     logger.info("Async fetching %s", url)
 
     try:
-        async with session.get(url, allow_redirects=True) as response:
+        async with session.get(url, allow_redirects=True, ssl=False) as response:
             html = await response.text()
             headers = {k.lower(): v for k, v in response.headers.items()}
             final_url = str(response.url)

@@ -1,0 +1,35 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: techdetector-staging
+
+resources:
+  - ../../base
+
+namePrefix: staging-
+
+patches:
+  - target:
+      kind: Deployment
+      name: crawler
+    patch: |
+      - op: replace
+        path: /spec/replicas
+        value: 1
+  - target:
+      kind: Deployment
+      name: worker
+    patch: |
+      - op: replace
+        path: /spec/replicas
+        value: 2
+  - target:
+      kind: ConfigMap
+      name: techdetector-config
+    patch: |
+      - op: replace
+        path: /data/MAX_CONCURRENT
+        value: "100"
+
+commonLabels:
+  environment: staging

@@ -5,6 +5,7 @@ Uses asyncio.Semaphore to control concurrency.
 Integrates rate limiter and robots checker.
 Reports progress via callback.
 """
+
 import asyncio
 import logging
 from dataclasses import dataclass
@@ -12,8 +13,7 @@ from typing import Callable, AsyncIterator, List, Dict, Optional
 from datetime import datetime, timezone
 import aiohttp
 
-from techdetector.config import load_config
-from techdetector.models import ScanResult, DetectionVector
+from techdetector.models import ScanResult
 from techdetector.storage import save_scan_result, get_company_detections
 from techdetector.fetcher import fetch_domain_async
 from techdetector.rate_limiter import RateLimiter
@@ -28,17 +28,19 @@ from techdetector.detectors.job_posting_detector import JobPostingDetector
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class BatchConfig:
-    max_concurrent: int = 10       # Max simultaneous domains
-    max_per_domain: float = 2.0    # Requests/sec per domain
+    max_concurrent: int = 10  # Max simultaneous domains
+    max_per_domain: float = 2.0  # Requests/sec per domain
     respect_robots: bool = True
-    skip_recent: bool = True       # Skip if scanned in last 24h
+    skip_recent: bool = True  # Skip if scanned in last 24h
     recent_hours: int = 24
     retry_count: int = 3
     retry_delay: float = 5.0
 
-@dataclass  
+
+@dataclass
 class ScanProgress:
     total: int
     completed: int
@@ -47,6 +49,7 @@ class ScanProgress:
     skipped: int
     current_domain: str | None
 
+
 async def perform_scan_async(
     session: aiohttp.ClientSession,
     domain: str,
@@ -54,12 +57,12 @@ async def perform_scan_async(
     robots_checker: RobotsChecker,
     config: BatchConfig,
     signatures: List[Dict],
-    active_vectors: List[str]
+    active_vectors: List[str],
 ) -> tuple[bool, Optional[str]]:
     """Perform async scan of a single domain. Returns (success, error_msg)."""
-    
+
     url = f"https://{domain}"
-    
+
     if config.respect_robots:
         allowed, crawl_delay = await robots_checker.is_allowed(url)
         if not allowed:
@@ -72,32 +75,38 @@ async def perform_scan_async(
         existing = get_company_detections(domain)
         if existing:
             # Get latest scan date
-            latest_date_str = max(d.get('last_verified_at', d.get('first_detected_at')) for d in existing)
+            latest_date_str = max(
+                str(d.get("last_verified_at", d.get("first_detected_at", ""))) for d in existing
+            )
             try:
-                latest_date = datetime.fromisoformat(latest_date_str.replace('Z', '+00:00'))
-                hours_diff = (datetime.now(timezone.utc) - latest_date).total_seconds() / 3600
+                latest_date = datetime.fromisoformat(
+                    latest_date_str.replace("Z", "+00:00")
+                )
+                hours_diff = (
+                    datetime.now(timezone.utc) - latest_date
+                ).total_seconds() / 3600
                 if hours_diff < config.recent_hours:
                     return True, "skipped_recent"
             except (ValueError, TypeError):
                 pass
-    
+
     all_detections = []
     html_fetched = False
     headers_captured = False
 
     if "html" in active_vectors or "headers" in active_vectors:
         fetch_result = await fetch_domain_async(session, url, rate_limiter)
-        
+
         if fetch_result.error:
             return False, fetch_result.error
-            
+
         html_fetched = fetch_result.html is not None
         headers_captured = bool(fetch_result.headers)
 
         if "html" in active_vectors and fetch_result.html:
             html_detector = HTMLDetector(signatures)
             all_detections.extend(html_detector.detect(fetch_result.html))
-            
+
         if "headers" in active_vectors and fetch_result.headers:
             header_detector = HeaderDetector(signatures)
             all_detections.extend(header_detector.detect(fetch_result.headers))
@@ -142,6 +151,7 @@ async def perform_scan_async(
     except Exception as e:
         return False, f"DB Error: {e}"
 
+
 async def _worker(
     session: aiohttp.ClientSession,
     queue: asyncio.Queue,
@@ -151,7 +161,7 @@ async def _worker(
     signatures: List[Dict],
     active_vectors: List[str],
     progress: ScanProgress,
-    progress_callback: Optional[Callable[[ScanProgress], None]]
+    progress_callback: Optional[Callable[[ScanProgress], None]],
 ):
     while True:
         try:
@@ -162,23 +172,33 @@ async def _worker(
         progress.current_domain = domain
         if progress_callback:
             progress_callback(progress)
-            
+
         success = False
         error_msg = None
-        
+
         for attempt in range(config.retry_count):
             try:
                 success, error_msg = await perform_scan_async(
-                    session, domain, rate_limiter, robots_checker, config, signatures, active_vectors
+                    session,
+                    domain,
+                    rate_limiter,
+                    robots_checker,
+                    config,
+                    signatures,
+                    active_vectors,
                 )
-                if success or error_msg == "Disallowed by robots.txt" or error_msg == "skipped_recent":
+                if (
+                    success
+                    or error_msg == "Disallowed by robots.txt"
+                    or error_msg == "skipped_recent"
+                ):
                     break
             except Exception as e:
                 error_msg = str(e)
-            
+
             if attempt < config.retry_count - 1 and not success:
                 await asyncio.sleep(config.retry_delay)
-                
+
         progress.completed += 1
         if success:
             if error_msg == "skipped_recent":
@@ -187,63 +207,73 @@ async def _worker(
                 progress.successful += 1
         else:
             progress.failed += 1
-            
+
         if progress_callback:
             progress_callback(progress)
-            
+
         queue.task_done()
 
 
 async def scan_batch(
     domains: List[str],
     config: BatchConfig,
-    progress_callback: Callable[[ScanProgress], None] | None = None
+    progress_callback: Callable[[ScanProgress], None] | None = None,
 ) -> Dict:
     """
     Scan multiple domains concurrently with rate limiting.
-    
+
     Returns summary dict with success/failure counts.
     """
     signatures = _load_signatures()
     active_vectors = ["html", "headers", "dns", "job_posting"]
-    
+
     progress = ScanProgress(
         total=len(domains),
         completed=0,
         successful=0,
         failed=0,
         skipped=0,
-        current_domain=None
+        current_domain=None,
     )
-    
+
     if progress_callback:
         progress_callback(progress)
-        
+
     rate_limiter = RateLimiter(default_rate=config.max_per_domain)
     robots_checker = RobotsChecker()
-    
-    queue = asyncio.Queue()
+
+    queue: asyncio.Queue[str] = asyncio.Queue()
     for d in domains:
         queue.put_nowait(_normalize_domain(d))
-        
+
     connector = aiohttp.TCPConnector(limit=config.max_concurrent * 2)
     async with aiohttp.ClientSession(connector=connector) as session:
         workers = []
         for _ in range(config.max_concurrent):
-            w = asyncio.create_task(_worker(
-                session, queue, rate_limiter, robots_checker, config, 
-                signatures, active_vectors, progress, progress_callback
-            ))
+            w = asyncio.create_task(
+                _worker(
+                    session,
+                    queue,
+                    rate_limiter,
+                    robots_checker,
+                    config,
+                    signatures,
+                    active_vectors,
+                    progress,
+                    progress_callback,
+                )
+            )
             workers.append(w)
-            
+
         await asyncio.gather(*workers)
-        
+
     return {
         "total": progress.total,
         "successful": progress.successful,
         "failed": progress.failed,
-        "skipped": progress.skipped
+        "skipped": progress.skipped,
     }
+
 
 async def stream_domains(filepath: str) -> AsyncIterator[str]:
     """
@@ -251,7 +281,8 @@ async def stream_domains(filepath: str) -> AsyncIterator[str]:
     Handles large files without loading all into memory.
     """
     import aiofiles
-    async with aiofiles.open(filepath, mode='r') as f:
+
+    async with aiofiles.open(filepath, mode="r") as f:
         async for line in f:
             domain = line.strip()
             if domain and not domain.startswith("#"):

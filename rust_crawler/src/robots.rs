@@ -27,7 +27,7 @@ impl RobotsCache {
 
     pub async fn is_allowed(&self, domain: &str, path: &str) -> (bool, Option<f64>) {
         let domain_string = domain.to_string();
-        
+
         // Fast path: Check cache
         {
             let cache_read = self.cache.read().await;
@@ -75,10 +75,14 @@ impl RobotsCache {
 
         for line in text.lines() {
             let line = line.trim();
-            if line.is_empty() || line.starts_with('#') { continue; }
+            if line.is_empty() || line.starts_with('#') {
+                continue;
+            }
 
             let parts: Vec<&str> = line.splitn(2, ':').collect();
-            if parts.len() != 2 { continue; }
+            if parts.len() != 2 {
+                continue;
+            }
 
             let key = parts[0].trim().to_lowercase();
             let value = parts[1].trim();
@@ -90,9 +94,11 @@ impl RobotsCache {
                 match key.as_str() {
                     "allow" => rules.allowed_paths.push(value.to_string()),
                     "disallow" => rules.disallowed_paths.push(value.to_string()),
-                    "crawl-delay" => if let Ok(delay) = value.parse::<f64>() {
-                        rules.crawl_delay = Some(delay);
-                    },
+                    "crawl-delay" => {
+                        if let Ok(delay) = value.parse::<f64>() {
+                            rules.crawl_delay = Some(delay);
+                        }
+                    }
                     _ => {}
                 }
             }
@@ -110,7 +116,7 @@ impl RobotsCache {
                 longest_disallow = d.len();
             }
         }
-        
+
         for a in &rules.allowed_paths {
             if path.starts_with(a) && a.len() > longest_allow {
                 longest_allow = a.len();

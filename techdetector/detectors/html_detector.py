@@ -25,8 +25,7 @@ class HTMLDetector(BaseDetector):
             signatures: Full list of technology signature dicts.
         """
         html_sigs = [
-            sig for sig in signatures
-            if "html" in sig.get("detection_vectors", {})
+            sig for sig in signatures if "html" in sig.get("detection_vectors", {})
         ]
         super().__init__(html_sigs)
         logger.debug("HTMLDetector loaded %d signatures", len(self.signatures))
@@ -66,7 +65,9 @@ class HTMLDetector(BaseDetector):
                             detected_at=datetime.now(timezone.utc),
                         )
                     )
-                    logger.info("HTML: Detected %s via pattern '%s'", sig["name"], pattern)
+                    logger.info(
+                        "HTML: Detected %s via pattern '%s'", sig["name"], pattern
+                    )
                     # One match per technology is enough — stop checking more patterns
                     break
 

@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crawler
+  namespace: techdetector
+  labels:
+    app: crawler
+    app.kubernetes.io/name: crawler
+    app.kubernetes.io/component: crawler
+    app.kubernetes.io/part-of: techdetector
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: crawler
+  template:
+    metadata:
+      labels:
+        app: crawler
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      containers:
+        - name: crawler
+          image: ghcr.io/yourorg/techdetector/crawler:latest
+          envFrom:
+            - configMapRef:
+                name: techdetector-config
+            - secretRef:
+                name: techdetector-secrets
+          ports:
+            - containerPort: 9090
+              name: metrics
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9090
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9090
+            initialDelaySeconds: 5
+            periodSeconds: 10

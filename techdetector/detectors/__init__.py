@@ -10,9 +10,4 @@ from .header_detector import HeaderDetector
 from .dns_detector import DNSDetector
 from .job_posting_detector import JobPostingDetector
 
-__all__ = [
-    "HTMLDetector",
-    "HeaderDetector",
-    "DNSDetector",
-    "JobPostingDetector"
-]
+__all__ = ["HTMLDetector", "HeaderDetector", "DNSDetector", "JobPostingDetector"]

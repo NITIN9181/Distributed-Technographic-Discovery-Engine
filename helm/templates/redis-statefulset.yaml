@@ -1,0 +1,79 @@
+{{- if .Values.redis.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-redis
+  labels:
+    {{- include "techdetector.labels" . | nindent 4 }}
+    app: redis
+    app.kubernetes.io/component: cache
+spec:
+  serviceName: {{ .Release.Name }}-redis
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: redis
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          {{- if .Values.redis.auth.password }}
+          command: ["redis-server", "--appendonly", "yes", "--requirepass", {{ .Values.redis.auth.password | quote }}]
+          {{- else }}
+          command: ["redis-server", "--appendonly", "yes"]
+          {{- end }}
+          ports:
+            - containerPort: 6379
+              name: redis
+          resources:
+            requests:
+              memory: {{ .Values.redis.resources.requests.memory | default "128Mi" | quote }}
+              cpu: {{ .Values.redis.resources.requests.cpu | default "100m" | quote }}
+            limits:
+              memory: {{ .Values.redis.resources.limits.memory | default "256Mi" | quote }}
+              cpu: {{ .Values.redis.resources.limits.cpu | default "500m" | quote }}
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+          livenessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            initialDelaySeconds: 3
+            periodSeconds: 5
+  volumeClaimTemplates:
+    - metadata:
+        name: redis-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: {{ .Values.redis.storage | default "5Gi" }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-redis
+  labels:
+    {{- include "techdetector.labels" . | nindent 4 }}
+    app: redis
+spec:
+  selector:
+    app: redis
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - port: 6379
+      targetPort: 6379
+      name: redis
+  clusterIP: None
+{{- end }}

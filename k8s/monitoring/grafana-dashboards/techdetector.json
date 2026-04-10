@@ -1,0 +1,149 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "techdetector",
+    "title": "TechDetector",
+    "tags": ["techdetector", "monitoring"],
+    "timezone": "browser",
+    "refresh": "30s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Crawl Rate",
+        "type": "graph",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+        "targets": [
+          {
+            "expr": "rate(crawler_requests_total[5m])",
+            "legendFormat": "Requests/sec"
+          }
+        ],
+        "yaxes": [
+          { "label": "req/s", "format": "short" },
+          {}
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Queue Depth",
+        "type": "graph",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+        "targets": [
+          {
+            "expr": "techdetector_queue_depth{queue=\"pending\"}",
+            "legendFormat": "Domains Pending"
+          },
+          {
+            "expr": "techdetector_queue_depth{queue=\"stream\"}",
+            "legendFormat": "Messages in Stream"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Detection Rate by Vector",
+        "type": "graph",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+        "targets": [
+          {
+            "expr": "sum(rate(techdetector_detections_total[5m])) by (vector)",
+            "legendFormat": "{{vector}}"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Worker Processing Time (p99)",
+        "type": "graph",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.99, rate(techdetector_message_processing_seconds_bucket[5m]))",
+            "legendFormat": "p99 latency"
+          }
+        ],
+        "yaxes": [
+          { "label": "seconds", "format": "s" },
+          {}
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Error Rate",
+        "type": "graph",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+        "targets": [
+          {
+            "expr": "sum(rate(techdetector_messages_processed_total{status=\"error\"}[5m])) / sum(rate(techdetector_messages_processed_total[5m])) * 100",
+            "legendFormat": "Error %"
+          }
+        ],
+        "yaxes": [
+          { "label": "%", "format": "percent" },
+          {}
+        ],
+        "thresholds": [
+          { "value": 5, "colorMode": "critical", "op": "gt" }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Messages Processed (Total)",
+        "type": "stat",
+        "gridPos": { "h": 4, "w": 6, "x": 12, "y": 16 },
+        "targets": [
+          {
+            "expr": "sum(techdetector_messages_processed_total)",
+            "legendFormat": "Total Processed"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Active Crawler Connections",
+        "type": "gauge",
+        "gridPos": { "h": 4, "w": 6, "x": 18, "y": 16 },
+        "targets": [
+          {
+            "expr": "sum(crawler_active_connections)",
+            "legendFormat": "Active"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "DB Operations",
+        "type": "graph",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+        "targets": [
+          {
+            "expr": "sum(rate(techdetector_db_operations_total{status=\"success\"}[5m]))",
+            "legendFormat": "Success/s"
+          },
+          {
+            "expr": "sum(rate(techdetector_db_operations_total{status=\"error\"}[5m]))",
+            "legendFormat": "Error/s"
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Top Detected Technologies",
+        "type": "table",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+        "targets": [
+          {
+            "expr": "topk(10, sum by (technology) (techdetector_detections_total))",
+            "legendFormat": "{{technology}}",
+            "format": "table",
+            "instant": true
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -8,16 +8,14 @@ Usage:
     python -m techdetector.scanner init-db
 """
 
-import sys
 import json
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 
-from techdetector.config import load_config
-from techdetector.models import ScanResult, DetectionVector
-from techdetector.storage import init_db, save_scan_result, query_by_technology, query_by_vector, get_all_companies
+from techdetector.models import ScanResult
+from techdetector.storage import init_db, save_scan_result
 from techdetector.fetcher import fetch_domain
 from techdetector.career_crawler import discover_career_pages
 
@@ -58,24 +56,24 @@ def perform_scan(url: str, active_vectors: list[str]) -> ScanResult:
     domain = _normalize_domain(url)
     signatures = _load_signatures()
     all_detections = []
-    
+
     html_fetched = False
     headers_captured = False
 
     if "html" in active_vectors or "headers" in active_vectors:
         fetch_result = fetch_domain(url)
-        
+
         if fetch_result.error:
             logger.error(f"Fetch failed for {url}: {fetch_result.error}")
             print(f"\n  [ERROR] Fetching {url}: {fetch_result.error}\n")
-            
+
         html_fetched = fetch_result.html is not None
         headers_captured = bool(fetch_result.headers)
 
         if "html" in active_vectors and fetch_result.html:
             html_detector = HTMLDetector(signatures)
             all_detections.extend(html_detector.detect(fetch_result.html))
-            
+
         if "headers" in active_vectors and fetch_result.headers:
             header_detector = HeaderDetector(signatures)
             all_detections.extend(header_detector.detect(fetch_result.headers))
@@ -110,6 +108,3 @@ def perform_scan(url: str, active_vectors: list[str]) -> ScanResult:
 
     save_scan_result(result)
     return result
-
-
-

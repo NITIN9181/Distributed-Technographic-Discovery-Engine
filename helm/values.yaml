@@ -1,0 +1,72 @@
+# Default values for techdetector Helm chart.
+# Override with --set flags or -f values-staging.yaml / values-production.yaml
+
+image:
+  repository: techdetector
+  tag: latest
+  pullPolicy: Never  # Use "IfNotPresent" for registry-based deploys
+
+crawler:
+  replicas: 2
+  maxConcurrent: 500
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "1000m"
+
+worker:
+  replicas: 5
+  batchSize: 10
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+redis:
+  enabled: true  # Set to false if using external Redis
+  architecture: standalone
+  auth:
+    enabled: true
+    password: ""  # Set via --set or secrets
+  storage: "5Gi"
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "500m"
+
+postgresql:
+  enabled: true  # Set to false if using external PostgreSQL
+  auth:
+    username: techdetector
+    password: ""  # Set via --set or secrets
+    database: techdetector
+  storage: "10Gi"
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "1000m"
+
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: false  # Requires Prometheus Operator CRDs; enable in production
+    interval: 30s
+
+config:
+  respectRobots: "true"
+  skipRecentHours: "24"
+  metricsPort: "9090"
+  workerHealthPort: "8080"
+  rustLog: "info"

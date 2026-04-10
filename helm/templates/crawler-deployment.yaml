@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-crawler
+  labels:
+    {{- include "techdetector.labels" . | nindent 4 }}
+    app: crawler
+spec:
+  replicas: {{ .Values.crawler.replicas }}
+  selector:
+    matchLabels:
+      app: crawler
+      {{- include "techdetector.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: crawler
+        {{- include "techdetector.selectorLabels" . | nindent 8 }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      containers:
+        - name: crawler
+          image: {{ include "techdetector.crawlerImage" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - configMapRef:
+                name: {{ .Release.Name }}-config
+            - secretRef:
+                name: {{ .Release.Name }}-secrets
+          ports:
+            - containerPort: 9090
+              name: metrics
+          resources:
+            {{- toYaml .Values.crawler.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9090
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9090
+            initialDelaySeconds: 5
+            periodSeconds: 10

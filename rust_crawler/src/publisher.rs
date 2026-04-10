@@ -1,6 +1,5 @@
 use redis::AsyncCommands;
 use serde::Serialize;
-use serde_json;
 
 #[derive(Serialize)]
 pub struct CrawlResult {
@@ -26,19 +25,20 @@ impl StreamPublisher {
 
     pub async fn publish(&self, result: CrawlResult) -> Result<String, redis::RedisError> {
         let mut con = self.redis.get_async_connection().await?;
-        
+
         let payload = match serde_json::to_string(&result) {
             Ok(p) => p,
-            Err(_) => return Err(redis::RedisError::from(
-                std::io::Error::new(std::io::ErrorKind::InvalidData, "Failed to serialize")
-            )),
+            Err(_) => {
+                return Err(redis::RedisError::from(std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    "Failed to serialize",
+                )))
+            }
         };
 
-        let message_id: String = con.xadd(
-            &self.stream_name,
-            "*",
-            &[("payload", &payload)],
-        ).await?;
+        let message_id: String = con
+            .xadd(&self.stream_name, "*", &[("payload", &payload)])
+            .await?;
 
         Ok(message_id)
     }

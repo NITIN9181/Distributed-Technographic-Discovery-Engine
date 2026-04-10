@@ -1,0 +1,32 @@
+# Staging overrides
+image:
+  pullPolicy: Never  # For local kind cluster
+
+crawler:
+  replicas: 1
+  maxConcurrent: 100
+
+worker:
+  replicas: 2
+
+redis:
+  auth:
+    password: "staging-redis-password"
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "500m"
+
+postgresql:
+  auth:
+    password: "staging-pg-password"
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "1000m"

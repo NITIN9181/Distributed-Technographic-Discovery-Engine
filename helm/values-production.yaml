@@ -1,0 +1,53 @@
+# Production overrides
+image:
+  pullPolicy: IfNotPresent  # Pull from registry in production
+  repository: ghcr.io/yourorg/techdetector  # Override with your actual registry
+
+crawler:
+  replicas: 4
+  maxConcurrent: 1000
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "2000m"
+
+worker:
+  replicas: 10
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "2000m"
+
+redis:
+  auth:
+    password: ""  # Must be set via --set redis.auth.password=...
+  storage: "20Gi"
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "1000m"
+
+postgresql:
+  auth:
+    password: ""  # Must be set via --set postgresql.auth.password=...
+  storage: "50Gi"
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "2000m"
+
+monitoring:
+  serviceMonitor:
+    enabled: true  # Production has Prometheus Operator

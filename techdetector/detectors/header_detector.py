@@ -25,8 +25,7 @@ class HeaderDetector(BaseDetector):
             signatures: Full list of technology signature dicts.
         """
         header_sigs = [
-            sig for sig in signatures
-            if "headers" in sig.get("detection_vectors", {})
+            sig for sig in signatures if "headers" in sig.get("detection_vectors", {})
         ]
         super().__init__(header_sigs)
         logger.debug("HeaderDetector loaded %d signatures", len(self.signatures))
@@ -54,8 +53,7 @@ class HeaderDetector(BaseDetector):
                     category=sig["category"],
                 )
                 evidence_parts = [
-                    f"{hdr}={headers.get(hdr, '<missing>')}"
-                    for hdr in rules
+                    f"{hdr}={headers.get(hdr, '<missing>')}" for hdr in rules
                 ]
                 detections.append(
                     Detection(

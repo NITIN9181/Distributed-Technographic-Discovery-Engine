@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: techdetector
+  labels:
+    app.kubernetes.io/name: techdetector
+    app.kubernetes.io/part-of: techdetector

@@ -3,11 +3,11 @@ PostgreSQL persistence layer.
 
 Implements the production schema from the spec.
 """
+
 import logging
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from contextlib import contextmanager
-from datetime import datetime
 
 from techdetector.models import Detection, DetectionVector, ScanResult, Technology
 from techdetector.config import load_config
@@ -40,6 +40,7 @@ CREATE INDEX IF NOT EXISTS idx_tech_by_tech_id
 ON technology_installations(technology_identifier);
 """
 
+
 @contextmanager
 def get_connection():
     config = load_config()
@@ -54,9 +55,11 @@ def get_connection():
     finally:
         conn.close()
 
+
 def init_db():
     """Create tables if they don't exist."""
     import psycopg2.errors
+
     try:
         with get_connection() as conn:
             with conn.cursor() as cur:
@@ -64,6 +67,7 @@ def init_db():
                 logger.info("Database tables initialized.")
     except (psycopg2.errors.UniqueViolation, psycopg2.errors.DuplicateTable):
         logger.info("Database tables already initialized (concurrency ignored).")
+
 
 def save_scan_result(result: ScanResult):
     """
@@ -82,7 +86,7 @@ def save_scan_result(result: ScanResult):
                 ON CONFLICT (canonical_domain) 
                 DO UPDATE SET last_successful_crawl = EXCLUDED.last_successful_crawl;
                 """,
-                (result.domain, now)
+                (result.domain, now),
             )
 
             # Upsert detections
@@ -107,11 +111,14 @@ def save_scan_result(result: ScanResult):
                         det.evidence,
                         det.technology.category,
                         now,
-                        now
-                    )
+                        now,
+                    ),
                 )
 
-            logger.info(f"Saved {len(result.detections)} PostgreSQL detections for {result.domain}")
+            logger.info(
+                f"Saved {len(result.detections)} PostgreSQL detections for {result.domain}"
+            )
+
 
 def query_by_technology(tech_id: str) -> list[dict]:
     """Find all companies using a specific technology."""
@@ -129,9 +136,10 @@ def query_by_technology(tech_id: str) -> list[dict]:
                 WHERE t.technology_identifier = %s
                 ORDER BY t.canonical_domain
                 """,
-                (tech_id,)
+                (tech_id,),
             )
             return cur.fetchall()
+
 
 def query_by_vector(vector: DetectionVector) -> list[dict]:
     """Find all detections from a specific vector (e.g., JOB_POSTING_NLP)."""
@@ -147,9 +155,10 @@ def query_by_vector(vector: DetectionVector) -> list[dict]:
                 WHERE t.detection_vector = %s
                 ORDER BY t.canonical_domain, t.technology_identifier
                 """,
-                (vector.name,)
+                (vector.name,),
             )
             return cur.fetchall()
+
 
 def get_company_technologies(domain: str) -> list[Detection]:
     """Retrieve all detected technologies for a domain."""
@@ -164,7 +173,7 @@ def get_company_technologies(domain: str) -> list[Detection]:
                 WHERE canonical_domain = %s
                 ORDER BY category, technology_identifier
                 """,
-                (domain,)
+                (domain,),
             )
             rows = cur.fetchall()
 
@@ -172,19 +181,22 @@ def get_company_technologies(domain: str) -> list[Detection]:
             for row in rows:
                 tech = Technology(
                     id=row["technology_id"],
-                    name=row["technology_id"].replace('_', ' ').title(),  # Approximation based on ID if name missing
-                    category=row["category"]
+                    name=row["technology_id"]
+                    .replace("_", " ")
+                    .title(),  # Approximation based on ID if name missing
+                    category=row["category"],
                 )
                 detections.append(
                     Detection(
                         technology=tech,
                         vector=DetectionVector[row["detection_vector"]],
                         evidence=row["evidence"] or "",
-                        detected_at=row["last_verified_at"]
+                        detected_at=row["last_verified_at"],
                     )
                 )
 
             return detections
+
 
 def get_company_detections(domain: str) -> list[dict]:
     """Retrieve raw dictionary detections for a domain."""
@@ -199,16 +211,17 @@ def get_company_detections(domain: str) -> list[dict]:
                 WHERE canonical_domain = %s
                 ORDER BY category, technology_identifier
                 """,
-                (domain,)
+                (domain,),
             )
             # psycopg2 RealDictRow -> dict and datetime -> str
             rows = []
             for row in cur.fetchall():
                 d = dict(row)
-                d['first_detected_at'] = d['first_detected_at'].isoformat()
-                d['last_verified_at'] = d['last_verified_at'].isoformat()
+                d["first_detected_at"] = d["first_detected_at"].isoformat()
+                d["last_verified_at"] = d["last_verified_at"].isoformat()
                 rows.append(d)
             return rows
+
 
 def query_detections(filters: dict) -> list[dict]:
     """Query detections with optional filters."""
@@ -221,7 +234,7 @@ def query_detections(filters: dict) -> list[dict]:
         WHERE 1=1
     """
     params = []
-    
+
     if filters.get("tech"):
         query += " AND t.technology_identifier = %s"
         params.append(filters["tech"])
@@ -231,31 +244,30 @@ def query_detections(filters: dict) -> list[dict]:
     if filters.get("since"):
         query += " AND t.latest_verification_date >= %s"
         params.append(filters["since"])
-        
+
     query += " ORDER BY t.canonical_domain, t.technology_identifier"
-    
+
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(query, tuple(params))
             rows = []
             for row in cur.fetchall():
                 d = dict(row)
-                d['first_detected_at'] = d['first_detected_at'].isoformat()
-                d['last_verified_at'] = d['last_verified_at'].isoformat()
+                d["first_detected_at"] = d["first_detected_at"].isoformat()
+                d["last_verified_at"] = d["last_verified_at"].isoformat()
                 rows.append(d)
             return rows
+
 
 def get_all_companies() -> list[dict]:
     """List all scanned companies with scan timestamps."""
     with get_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(
-                """
+            cur.execute("""
                 SELECT canonical_domain as domain, 
                        last_successful_crawl as first_scanned_at, -- using last as an approximation
                        last_successful_crawl as last_scanned_at
                 FROM scanned_companies
                 ORDER BY canonical_domain
-                """
-            )
+                """)
             return cur.fetchall()

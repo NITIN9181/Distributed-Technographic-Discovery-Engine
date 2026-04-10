@@ -8,3 +8,4 @@ aiohttp>=3.9.3
 click>=8.1.7
 rich>=13.7.0
 redis>=5.0.1
+prometheus-client>=0.20.0

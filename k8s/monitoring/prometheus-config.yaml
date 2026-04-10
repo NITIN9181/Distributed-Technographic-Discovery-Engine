@@ -1,0 +1,101 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: techdetector
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets:
+                - alertmanager:9093
+
+    rule_files:
+      - /etc/prometheus/alert_rules.yml
+
+    scrape_configs:
+      - job_name: 'crawler'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: crawler
+            action: keep
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            target_label: __address__
+            regex: (.+)
+            replacement: ${1}:9090
+
+      - job_name: 'worker'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: worker
+            action: keep
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            target_label: __address__
+            regex: (.+)
+            replacement: ${1}:9090
+
+  alert_rules.yml: |
+    groups:
+      - name: techdetector
+        rules:
+          - alert: HighErrorRate
+            expr: >
+              sum(rate(techdetector_messages_processed_total{status="error"}[5m]))
+              /
+              sum(rate(techdetector_messages_processed_total[5m]))
+              > 0.05
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: "High error rate in TechDetector workers"
+              description: "Error rate is {{ $value | humanizePercentage }} over the last 5 minutes."
+
+          - alert: QueueBacklog
+            expr: techdetector_queue_depth{queue="pending"} > 10000
+            for: 10m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Large queue backlog detected"
+              description: "{{ $value }} domains pending in queue for >10 minutes."
+
+          - alert: WorkerDown
+            expr: up{job="worker"} == 0
+            for: 2m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Worker instance is down"
+              description: "Worker {{ $labels.instance }} has been down for >2 minutes."
+
+          - alert: CrawlerDown
+            expr: up{job="crawler"} == 0
+            for: 2m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Crawler instance is down"
+              description: "Crawler {{ $labels.instance }} has been down for >2 minutes."
+
+          - alert: SlowProcessing
+            expr: >
+              histogram_quantile(0.99, rate(techdetector_message_processing_seconds_bucket[5m]))
+              > 30
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Worker processing latency is high"
+              description: "p99 message processing time is {{ $value }}s."

@@ -26,13 +26,13 @@ impl Fetcher {
             .pool_max_idle_per_host(10)
             .build()
             .expect("Failed to build HTTP client");
-        
+
         Self {
             client,
             max_body_size: 5 * 1024 * 1024, // 5MB max
         }
     }
-    
+
     pub async fn fetch(&self, url: &str) -> FetchResult {
         let start = std::time::Instant::now();
         let mut result = FetchResult {
@@ -59,7 +59,9 @@ impl Fetcher {
 
         for (k, v) in response.headers().iter() {
             if let Ok(value) = v.to_str() {
-                result.headers.insert(k.as_str().to_lowercase(), value.to_string());
+                result
+                    .headers
+                    .insert(k.as_str().to_lowercase(), value.to_string());
             }
         }
 
@@ -81,7 +83,7 @@ impl Fetcher {
                 } else {
                     result.html = text;
                 }
-            },
+            }
             Err(e) => {
                 result.error = Some(e.to_string());
             }
@@ -90,7 +92,7 @@ impl Fetcher {
         result.fetch_time_ms = start.elapsed().as_millis() as u64;
         result
     }
-    
+
     pub async fn fetch_career_pages(&self, domain: &str) -> Vec<FetchResult> {
         let urls = vec![
             format!("https://careers.{}", domain),
@@ -100,10 +102,7 @@ impl Fetcher {
 
         let mut futures = vec![];
         for url in urls.into_iter() {
-            
-            futures.push(async move {
-                self.fetch(&url).await
-            });
+            futures.push(async move { self.fetch(&url).await });
         }
 
         let mut success_pages = vec![];
