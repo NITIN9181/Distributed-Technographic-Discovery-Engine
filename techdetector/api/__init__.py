@@ -1,0 +1,3 @@
+"""
+TechDetector API Module
+"""

@@ -1,0 +1,9 @@
+dashboard/node_modules
+dashboard/.next
+api/__pycache__
+api/.venv
+api/venv
+node_modules
+.git
+.venv
+__pycache__

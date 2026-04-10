@@ -1,0 +1,23 @@
+[
+  {
+    "text": "Looking for a seasoned Data Engineer with 3+ years of Snowflake experience and strong Python skills.",
+    "entities": [
+      {"start": 54, "end": 63, "label": "DATABASE"},
+      {"start": 79, "end": 85, "label": "PROGRAMMING_LANGUAGE"}
+    ]
+  },
+  {
+    "text": "The ideal candidate will have deployed scalable services on AWS and be familiar with Kubernetes.",
+    "entities": [
+      {"start": 60, "end": 63, "label": "CLOUD_SERVICE"},
+      {"start": 85, "end": 95, "label": "TECHNOLOGY"}
+    ]
+  },
+  {
+    "text": "We are a fast-growing startup seeking a React developer to build our frontend. Next.js knowledge is a plus.",
+    "entities": [
+      {"start": 40, "end": 45, "label": "FRAMEWORK"},
+      {"start": 79, "end": 86, "label": "FRAMEWORK"}
+    ]
+  }
+]
