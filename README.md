@@ -1,6 +1,5 @@
 # <img src="docs/assets/logo.png" width="48" height="48" valign="middle"> TechDetector
 
-[![CI/CD](https://github.com/NITIN9181/Distributed-Technographic-Discovery-Engine/actions/workflows/cd.yml/badge.svg)](https://github.com/NITIN9181/Distributed-Technographic-Discovery-Engine/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Rust](https://img.shields.io/badge/Rust-1.75+-orange.svg)](https://www.rust-lang.org/)
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
