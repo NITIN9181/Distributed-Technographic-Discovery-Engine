@@ -22,6 +22,7 @@ from techdetector.batch_scanner import scan_batch, BatchConfig, stream_domains, 
 from techdetector.storage import query_by_technology, query_by_vector, get_all_companies, query_detections
 from techdetector.export import export_json, export_csv
 from techdetector.models import DetectionVector
+from techdetector.orchestrator import Orchestrator
 
 console = Console()
 
@@ -166,6 +167,35 @@ def init_db_cmd():
     """Initialize the database."""
     init_database()
     console.print("[bold green]OK[/] Database initialized successfully.")
+
+@cli.command()
+@click.argument('filepath', type=click.Path(exists=True))
+@click.option('--force', '-f', is_flag=True, help='Ignore recency check')
+def enqueue(filepath: str, force: bool):
+    """Enqueue domains for distributed crawling."""
+    config = load_config()
+    orchestrator = Orchestrator(config.redis_url, config.database_url)
+    
+    with open(filepath) as f:
+        domains = [line.strip() for line in f if line.strip()]
+    
+    result = orchestrator.enqueue(domains, force=force)
+    console.print(f"[green]Enqueued: {result['enqueued']}[/green]")
+    console.print(f"[yellow]Skipped: {result['skipped']}[/yellow]")
+
+@cli.command()
+def status():
+    """Show distributed crawl status."""
+    config = load_config()
+    orchestrator = Orchestrator(config.redis_url, config.database_url)
+    stats = orchestrator.get_queue_stats()
+    
+    table = Table(title="Crawl Status")
+    table.add_column("Metric")
+    table.add_column("Value")
+    for k, v in stats.items():
+        table.add_row(k.replace('_', ' ').title(), str(v))
+    console.print(table)
 
 @cli.command()
 def stats():

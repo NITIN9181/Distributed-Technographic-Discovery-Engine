@@ -60,3 +60,5 @@ class ScanResult:
     detections: list[Detection]
     html_fetched: bool
     headers_captured: bool
+    dns_resolved: bool = False
+    careers_crawled: int = 0

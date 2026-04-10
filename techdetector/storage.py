@@ -56,10 +56,14 @@ def get_connection():
 
 def init_db():
     """Create tables if they don't exist."""
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(SCHEMA)
-            logger.info("Database tables initialized.")
+    import psycopg2.errors
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(SCHEMA)
+                logger.info("Database tables initialized.")
+    except (psycopg2.errors.UniqueViolation, psycopg2.errors.DuplicateTable):
+        logger.info("Database tables already initialized (concurrency ignored).")
 
 def save_scan_result(result: ScanResult):
     """

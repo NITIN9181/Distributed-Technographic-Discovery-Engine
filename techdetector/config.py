@@ -5,11 +5,20 @@ from dotenv import load_dotenv
 @dataclass
 class Config:
     database_url: str
+    redis_url: str
     spacy_model: str = "en_core_web_sm"
     dns_timeout: float = 5.0
     http_timeout: float = 15.0
     
-    # Batch scanning
+    # Crawler settings
+    crawler_max_concurrent: int = 500
+    crawler_timeout_seconds: int = 15
+    
+    # Worker settings
+    worker_batch_size: int = 10
+    worker_health_port: int = 8080
+    
+    # Rate limits and behavior (legacy/legacy mappings)
     batch_concurrency: int = 10
     rate_limit_per_domain: float = 2.0
     rate_limit_burst: float = 5.0
@@ -24,6 +33,8 @@ def load_config() -> Config:
             "DATABASE_URL", 
             "postgresql://techdetector:localdev123@localhost:5432/techdetector"
         ),
+        redis_url=os.getenv("REDIS_URL", "redis://localhost:6379"),
+        crawler_max_concurrent=int(os.getenv("MAX_CONCURRENT", "500")),
         spacy_model=os.getenv("SPACY_MODEL", "en_core_web_sm"),
         dns_timeout=float(os.getenv("DNS_TIMEOUT", "5.0")),
         http_timeout=float(os.getenv("HTTP_TIMEOUT", "15.0")),

@@ -15,7 +15,7 @@ from techdetector.models import Detection, DetectionVector, Technology
 logger = logging.getLogger(__name__)
 
 
-class HtmlDetector(BaseDetector):
+class HTMLDetector(BaseDetector):
     """Detects technologies by matching patterns against page HTML source."""
 
     def __init__(self, signatures: list[dict]) -> None:
@@ -29,7 +29,7 @@ class HtmlDetector(BaseDetector):
             if "html" in sig.get("detection_vectors", {})
         ]
         super().__init__(html_sigs)
-        logger.debug("HtmlDetector loaded %d signatures", len(self.signatures))
+        logger.debug("HTMLDetector loaded %d signatures", len(self.signatures))
 
     def detect(self, html: str) -> list[Detection]:
         """Scan HTML source for technology fingerprints.

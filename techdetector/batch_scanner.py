@@ -21,7 +21,7 @@ from techdetector.robots_parser import RobotsChecker
 from techdetector.career_crawler import discover_career_pages
 from techdetector.scanner import _load_signatures, _normalize_domain
 
-from techdetector.detectors.html_detector import HtmlDetector
+from techdetector.detectors.html_detector import HTMLDetector
 from techdetector.detectors.header_detector import HeaderDetector
 from techdetector.detectors.dns_detector import DNSDetector
 from techdetector.detectors.job_posting_detector import JobPostingDetector
@@ -95,7 +95,7 @@ async def perform_scan_async(
         headers_captured = bool(fetch_result.headers)
 
         if "html" in active_vectors and fetch_result.html:
-            html_detector = HtmlDetector(signatures)
+            html_detector = HTMLDetector(signatures)
             all_detections.extend(html_detector.detect(fetch_result.html))
             
         if "headers" in active_vectors and fetch_result.headers:

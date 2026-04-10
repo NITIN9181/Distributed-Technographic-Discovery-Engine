@@ -1,147 +1,151 @@
-//! Basic async HTTP fetcher - proof of concept for Phase 4
+//! TechDetector Rust Crawler
 //! 
-//! Usage:
-//!   rust_crawler <url>
-//!   rust_crawler --batch urls.txt
-//! 
-//! Output: JSON with url, status, headers, body_length, body (first 10KB)
+//! High-throughput async crawler that:
+//! 1. Consumes domains from Redis queue
+//! 2. Fetches HTML, headers, DNS, TLS for each
+//! 3. Publishes results to Redis stream
+
+mod fetcher;
+mod dns;
+mod tls;
+mod robots;
+mod rate_limiter;
+mod publisher;
 
 use clap::Parser;
-use reqwest::Client;
-use serde::Serialize;
-use std::time::Duration;
-use std::fs::File;
-use std::io::{self, BufRead};
-use std::path::Path;
+use std::sync::Arc;
+use tokio::sync::Semaphore;
+use redis::AsyncCommands;
+use chrono::Utc;
 
 #[derive(Parser)]
-#[command(name = "rust_crawler")]
-struct Args {
-    /// URL to fetch
-    url: Option<String>,
+struct Config {
+    /// Redis URL
+    #[arg(long, env = "REDIS_URL", default_value = "redis://localhost:6379")]
+    redis_url: String,
     
-    /// File with URLs (one per line)
-    #[arg(long)]
-    batch: Option<String>,
-}
-
-#[derive(Serialize)]
-struct FetchResult {
-    url: String,
-    final_url: String,
-    status: u16,
-    headers: std::collections::HashMap<String, String>,
-    body_length: usize,
-    body_preview: String,  // First 10KB
-    error: Option<String>,
+    /// Max concurrent requests
+    #[arg(long, env = "MAX_CONCURRENT", default_value = "500")]
+    max_concurrent: usize,
+    
+    /// Input queue name
+    #[arg(long, default_value = "domains:pending")]
+    input_queue: String,
+    
+    /// Output stream name  
+    #[arg(long, default_value = "crawl:results")]
+    output_stream: String,
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let args = Args::parse();
+    tracing_subscriber::fmt::init();
+    let config = Config::parse();
     
-    let client = Client::builder()
-        .timeout(Duration::from_secs(15))
-        .user_agent("TechDetector-RustCrawler/0.1")
-        .redirect(reqwest::redirect::Policy::limited(5))
-        .build()?;
+    let redis_client = redis::Client::open(config.redis_url.clone())?;
     
-    if let Some(url) = args.url {
-        let result = fetch_url(&client, &url).await;
-        let json = serde_json::to_string_pretty(&result)?;
-        println!("{}", json);
-    } else if let Some(batch_file) = args.batch {
-        if let Ok(lines) = read_lines(batch_file) {
-            let mut results = Vec::new();
-            for line in lines {
-                if let Ok(domain) = line {
-                    if domain.trim().is_empty() {
-                        continue;
-                    }
-                    let url = if domain.starts_with("http") {
-                        domain
-                    } else {
-                        format!("https://{}", domain)
-                    };
-                    
-                    let result = fetch_url(&client, &url).await;
-                    results.push(result);
+    let semaphore = Arc::new(Semaphore::new(config.max_concurrent));
+    let fetcher = Arc::new(fetcher::Fetcher::new());
+    let dns_resolver = Arc::new(dns::DNSResolver::new().await);
+    let robots_cache = Arc::new(robots::RobotsCache::new());
+    let rate_limiter = Arc::new(rate_limiter::DistributedRateLimiter::new(
+        redis_client.clone(),
+        2.0, // Default 2 req/sec
+    ));
+    let publisher = Arc::new(publisher::StreamPublisher::new(
+        redis_client.clone(),
+        config.output_stream.clone(),
+    ));
+
+    tracing::info!("Starting Rust crawler with max concurrency {}", config.max_concurrent);
+
+    // Main loop: pop domain from queue, spawn crawl task
+    loop {
+        let mut con = match redis_client.get_async_connection().await {
+            Ok(c) => c,
+            Err(e) => {
+                tracing::error!("Failed to connect to Redis: {}. Retrying...", e);
+                tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+                continue;
+            }
+        };
+
+        // Try to pop a domain
+        let domain: Option<String> = match con.lpop(&config.input_queue, None).await {
+            Ok(val) => val,
+            Err(e) => {
+                tracing::error!("Queue error: {}", e);
+                tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+                continue;
+            }
+        };
+
+        let domain = match domain {
+            Some(d) => d,
+            None => {
+                // Queue empty, wait
+                tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+                continue;
+            }
+        };
+
+        let permit = semaphore.clone().acquire_owned().await.unwrap();
+        
+        let f_fetcher = fetcher.clone();
+        let f_dns = dns_resolver.clone();
+        let f_robots = robots_cache.clone();
+        let f_limiter = rate_limiter.clone();
+        let f_publisher = publisher.clone();
+
+        tokio::spawn(async move {
+            let _permit = permit;
+            tracing::info!("Crawling domain: {}", domain);
+
+            // 1. Robots.txt check
+            let (allowed, delay) = f_robots.is_allowed(&domain, "/").await;
+            if !allowed {
+                tracing::warn!("Robots.txt disallowed crawling for {}", domain);
+                return;
+            }
+
+            if let Some(d) = delay {
+                if let Err(e) = f_limiter.set_rate(&domain, 1.0 / d).await {
+                    tracing::error!("Failed to set rate limit: {}", e);
                 }
             }
-            let json = serde_json::to_string_pretty(&results)?;
-            println!("{}", json);
-        }
-    } else {
-        println!("Please provide a URL or --batch file. Run with --help for usage.");
-    }
-    
-    Ok(())
-}
 
-fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
-where P: AsRef<Path>, {
-    let file = File::open(filename)?;
-    Ok(io::BufReader::new(file).lines())
-}
-
-async fn fetch_url(client: &Client, url: &str) -> FetchResult {
-    let target_url = if url.starts_with("http") {
-        url.to_string()
-    } else {
-        format!("https://{}", url)
-    };
-
-    match client.get(&target_url).send().await {
-        Ok(response) => {
-            let final_url = response.url().to_string();
-            let status = response.status().as_u16();
-            
-            let mut headers = std::collections::HashMap::new();
-            for (key, value) in response.headers().iter() {
-                if let Ok(val_str) = value.to_str() {
-                    headers.insert(key.as_str().to_string(), val_str.to_string());
-                }
+            // 2. Wait for rate limit permit
+            if let Err(e) = f_limiter.acquire(&domain).await {
+                tracing::error!("Rate limit error for {}: {}", domain, e);
+                return;
             }
-            
-            match response.text().await {
-                Ok(body) => {
-                    let body_length = body.len();
-                    // Preview up to 10KB
-                    let body_preview = if body_length > 10240 {
-                        body[..10240].to_string()
-                    } else {
-                        body
-                    };
-                    
-                    FetchResult {
-                        url: target_url,
-                        final_url,
-                        status,
-                        headers,
-                        body_length,
-                        body_preview,
-                        error: None,
-                    }
-                },
-                Err(e) => FetchResult {
-                    url: target_url.clone(),
-                    final_url,
-                    status,
-                    headers,
-                    body_length: 0,
-                    body_preview: String::new(),
-                    error: Some(format!("Failed to read body: {}", e)),
-                }
+
+            let main_url = format!("https://{}", domain);
+
+            // 3. Concurrent fetches
+            let (fetch_res, career_res, dns_res, tls_res) = tokio::join!(
+                f_fetcher.fetch(&main_url),
+                f_fetcher.fetch_career_pages(&domain),
+                f_dns.resolve(&domain),
+                tls::extract_tls_info(&domain)
+            );
+
+            // 4. Publish result
+            let result = publisher::CrawlResult {
+                message_id: None,
+                domain: domain.clone(),
+                crawled_at: Utc::now().to_rfc3339(),
+                html: fetch_res.html,
+                headers: fetch_res.headers,
+                career_pages: career_res,
+                dns_records: dns_res,
+                tls_info: tls_res,
+            };
+
+            match f_publisher.publish(result).await {
+                Ok(msg_id) => tracing::info!("Published result for {} (ID: {})", domain, msg_id),
+                Err(e) => tracing::error!("Failed to publish result for {}: {}", domain, e),
             }
-        },
-        Err(e) => FetchResult {
-            url: target_url,
-            final_url: String::new(),
-            status: 0,
-            headers: std::collections::HashMap::new(),
-            body_length: 0,
-            body_preview: String::new(),
-            error: Some(e.to_string()),
-        }
+        });
     }
 }

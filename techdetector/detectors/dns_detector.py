@@ -25,10 +25,49 @@ class DNSDetector:
                     'dns_rules': s['detection_vectors']['dns']
                 })
     
+    def detect_from_records(self, records: dict) -> list[Detection]:
+        """Match against pre-fetched DNS records."""
+        detections = []
+        # Check against signatures
+        for sig in self.signatures:
+            detected = False
+            evidence = ""
+            
+            rules = sig['dns_rules']
+            
+            # Check MX matching
+            if not detected and 'mx' in rules:
+                mx_contains = rules['mx'].get('contains', [])
+                for target in mx_contains:
+                    for exch in records.get('mx', []):
+                        if target.lower() in exch:
+                            detected = True
+                            evidence = f"MX record matches {target}"
+                            break
+                    if detected: break
+            
+            # Check TXT/SPF matching
+            if not detected and 'txt' in rules:
+                txt_contains = rules['txt'].get('contains', [])
+                for target in txt_contains:
+                    for txt_rec in records.get('txt', []):
+                        if target.lower() in txt_rec:
+                            detected = True
+                            evidence = f"TXT record matches: {target}"
+                            break
+                    if detected: break
+                    
+            if detected:
+                detections.append(Detection(
+                    technology=sig['technology'],
+                    vector=DetectionVector.DNS_RECORD,
+                    evidence=evidence
+                ))
+                
+        return detections
+
     def detect(self, domain: str) -> list[Detection]:
         """Query DNS records and match against signatures."""
-        detections = []
-        
         # Gather DNS records
         records = {'mx': [], 'txt': [], 'cname': []}
         
@@ -44,43 +83,4 @@ class DNSDetector:
         except Exception as e:
             logger.debug(f"TXT lookup failed for {domain}: {e}")
             
-        # Optional: could check CNAME for specific basic hostnames like mail, www.
-        # It takes individual lookups, so maybe skip exhaustive CNAME unless requested.
-        
-        # Check against signatures
-        for sig in self.signatures:
-            detected = False
-            evidence = ""
-            
-            rules = sig['dns_rules']
-            
-            # Check MX matching
-            if not detected and 'mx' in rules:
-                mx_contains = rules['mx'].get('contains', [])
-                for target in mx_contains:
-                    for exch in records['mx']:
-                        if target.lower() in exch:
-                            detected = True
-                            evidence = f"MX record matches {target}"
-                            break
-                    if detected: break
-            
-            # Check TXT/SPF matching
-            if not detected and 'txt' in rules:
-                txt_contains = rules['txt'].get('contains', [])
-                for target in txt_contains:
-                    for txt_rec in records['txt']:
-                        if target.lower() in txt_rec:
-                            detected = True
-                            evidence = f"TXT record matches: {target}"
-                            break
-                    if detected: break
-                    
-            if detected:
-                detections.append(Detection(
-                    technology=sig['technology'],
-                    vector=DetectionVector.DNS_RECORD,
-                    evidence=evidence
-                ))
-                
-        return detections
+        return self.detect_from_records(records)

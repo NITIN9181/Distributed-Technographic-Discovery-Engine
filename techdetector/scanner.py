@@ -21,7 +21,7 @@ from techdetector.storage import init_db, save_scan_result, query_by_technology,
 from techdetector.fetcher import fetch_domain
 from techdetector.career_crawler import discover_career_pages
 
-from techdetector.detectors.html_detector import HtmlDetector
+from techdetector.detectors.html_detector import HTMLDetector
 from techdetector.detectors.header_detector import HeaderDetector
 from techdetector.detectors.dns_detector import DNSDetector
 from techdetector.detectors.job_posting_detector import JobPostingDetector
@@ -73,7 +73,7 @@ def perform_scan(url: str, active_vectors: list[str]) -> ScanResult:
         headers_captured = bool(fetch_result.headers)
 
         if "html" in active_vectors and fetch_result.html:
-            html_detector = HtmlDetector(signatures)
+            html_detector = HTMLDetector(signatures)
             all_detections.extend(html_detector.detect(fetch_result.html))
             
         if "headers" in active_vectors and fetch_result.headers:

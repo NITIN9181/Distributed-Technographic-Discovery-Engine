@@ -1,0 +1,133 @@
+    Checking rust_crawler v0.2.0 (D:\PROGRAMS\Distributed-Technographic-Discovery-Engine\rust_crawler)
+error[E0432]: unresolved import `rustls::server::ServerName`
+ --> src\tls.rs:3:43
+  |
+3 | use rustls::{ClientConfig, RootCertStore, server::ServerName};
+  |                                           ^^^^^^^^^^^^^^^^^^ no `ServerName` in `server`
+  |
+  = help: consider importing one of these items instead:
+          rustls::ServerName
+          rustls::internal::msgs::enums::ExtensionType::ServerName
+          rustls::internal::msgs::handshake::ClientExtension::ServerName
+          rustls::internal::msgs::handshake::ServerName
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio_rustls`
+  --> src\tls.rs:39:21
+   |
+39 |     let connector = tokio_rustls::TlsConnector::from(Arc::new(config));
+   |                     ^^^^^^^^^^^^ use of unresolved module or unlinked crate `tokio_rustls`
+   |
+   = help: if you wanted to use a crate named `tokio_rustls`, use `cargo add tokio_rustls` to add it to your `Cargo.toml`
+
+warning: unused import: `trust_dns_resolver::Name`
+ --> src\tls.rs:5:5
+  |
+5 | use trust_dns_resolver::Name;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error[E0597]: `url` does not live long enough
+   --> src\fetcher.rs:103:37
+    |
+102 |         for url in urls {
+    |             --- binding `url` declared here
+103 |             futures.push(self.fetch(&url));
+    |             -------                 ^^^^ borrowed value does not live long enough
+    |             |
+    |             borrow later used here
+104 |         }
+    |         - `url` dropped here while still borrowed
+
+error[E0282]: type annotations needed
+  --> src\tls.rs:65:9
+   |
+65 |     let tls_stream = match tokio::time::timeout(std::time::Duration::from_secs(5), connector.connect(server_name, tcp_stream)).await {
+   |         ^^^^^^^^^^
+...
+77 |     let (_, connection) = tls_stream.into_inner();
+   |                           ---------- type must be known at this point
+   |
+help: consider giving `tls_stream` an explicit type
+   |
+65 |     let tls_stream: /* Type */ = match tokio::time::timeout(std::time::Duration::from_secs(5), connector.connect(server_name, tcp_stream)).await {
+   |                   ++++++++++++
+
+error[E0282]: type annotations needed
+  --> src\tls.rs:79:26
+   |
+79 |     if let Some(certs) = connection.peer_certificates() {
+   |                          ^^^^^^^^^^ cannot infer type
+
+error[E0282]: type annotations needed
+  --> src\tls.rs:80:33
+   |
+80 |         if let Some(cert_der) = certs.first() {
+   |                                 ^^^^^ cannot infer type
+
+error: this function depends on never type fallback being `()`
+  --> src\rate_limiter.rs:13:5
+   |
+13 |     pub async fn acquire(&self, domain: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in Rust 2024 and in a future release in all editions!
+   = note: for more information, see <https://doc.rust-lang.org/edition-guide/rust-2024/never-type-fallback.html>
+   = help: specify the types explicitly
+note: in edition 2024, the requirement `!: FromRedisValue` will fail
+  --> src\rate_limiter.rs:37:14
+   |
+37 |             .query_async(&mut con).await?;
+   |              ^^^^^^^^^^^
+   = note: `#[deny(dependency_on_unit_never_type_fallback)]` (part of `#[deny(rust_2024_compatibility)]`) on by default
+help: use `()` annotations to avoid fallback changes
+   |
+37 |             .query_async::<_, ()>(&mut con).await?;
+   |                         +++++++++
+
+error: this function depends on never type fallback being `()`
+  --> src\rate_limiter.rs:50:5
+   |
+50 |     pub async fn set_rate(&self, domain: &str, rate: f64) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in Rust 2024 and in a future release in all editions!
+   = note: for more information, see <https://doc.rust-lang.org/edition-guide/rust-2024/never-type-fallback.html>
+   = help: specify the types explicitly
+note: in edition 2024, the requirement `!: FromRedisValue` will fail
+  --> src\rate_limiter.rs:53:13
+   |
+53 |         con.set_ex(key, rate, 3600).await?; // Cache for 1 hour
+   |             ^^^^^^
+help: use `()` annotations to avoid fallback changes
+   |
+53 |         con.set_ex::<_, _, ()>(key, rate, 3600).await?; // Cache for 1 hour
+   |                   ++++++++++++
+
+error[E0599]: no method named `env` found for struct `clap::Arg` in the current scope
+  --> src\main.rs:24:17
+   |
+24 |     #[arg(long, env = "REDIS_URL", default_value = "redis://localhost:6379")]
+   |                 ^^^ method not found in `clap::Arg`
+
+error[E0599]: no method named `env` found for struct `clap::Arg` in the current scope
+  --> src\main.rs:28:17
+   |
+28 |     #[arg(long, env = "MAX_CONCURRENT", default_value = "500")]
+   |                 ^^^ method not found in `clap::Arg`
+
+error[E0733]: recursion in an async fn requires boxing
+  --> src\rate_limiter.rs:13:5
+   |
+13 |     pub async fn acquire(&self, domain: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+44 |             return self.acquire(domain).await;
+   |                    -------------------------- recursive call here
+   |
+   = note: a recursive `async fn` call must introduce indirection such as `Box::pin` to avoid an infinitely sized future
+
+Some errors have detailed explanations: E0282, E0432, E0433, E0597, E0599, E0733.
+For more information about an error, try `rustc --explain E0282`.
+warning: `rust_crawler` (bin "rust_crawler") generated 1 warning
+error: could not compile `rust_crawler` (bin "rust_crawler") due to 15 previous errors; 1 warning emitted
