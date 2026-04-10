@@ -5,7 +5,8 @@ Detection pipeline that processes crawl messages.
 import logging
 import time
 from .consumer import StreamConsumer, CrawlMessage
-from ..detectors import HTMLDetector, HeaderDetector, DNSDetector, JobPostingDetector
+from ..detectors import HTMLDetector, HeaderDetector, DNSDetector
+from ..ml.enhanced_detector import MLEnhancedJobDetector
 from ..storage import save_scan_result
 from ..models import ScanResult
 from ..metrics import (
@@ -26,7 +27,7 @@ class DetectionProcessor:
         self.html_detector = HTMLDetector(signatures)
         self.header_detector = HeaderDetector(signatures)
         self.dns_detector = DNSDetector(signatures)
-        self.job_detector = JobPostingDetector(signatures)
+        self.job_detector = MLEnhancedJobDetector()
         self.db_url = db_url
 
     async def process_message(self, msg: CrawlMessage) -> ScanResult:

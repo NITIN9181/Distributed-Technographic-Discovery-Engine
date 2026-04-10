@@ -33,10 +33,18 @@ async def main():
     start_metrics_server(metrics_port)
     logging.info(f"Prometheus metrics server started on port {metrics_port}")
 
-    processor = DetectionProcessor(redis_url, db_url)
-    health = HealthServer(redis_url, port=int(os.getenv("WORKER_HEALTH_PORT", 8080)))
+    # Start health server first in a background task
+    health_port = int(os.getenv("WORKER_HEALTH_PORT", 8080))
+    health = HealthServer(redis_url, port=health_port)
+    health_task = asyncio.create_task(health.run())
+    logging.info(f"Health server started on port {health_port}")
 
-    await asyncio.gather(processor.run(), health.run())
+    # Initialize processor in a thread to avoid blocking the event loop (model loading is heavy)
+    processor = await asyncio.to_thread(DetectionProcessor, redis_url, db_url)
+    logging.info("DetectionProcessor initialized")
+    
+    await processor.run()
+    await health_task
 
 
 if __name__ == "__main__":

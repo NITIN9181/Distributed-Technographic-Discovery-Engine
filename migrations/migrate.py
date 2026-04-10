@@ -42,7 +42,7 @@ def run_migrations(db_url: str):
                 (version,)
             )
             conn.commit()
-            print(f"  ✓ Applied {version}")
+            print(f"  [OK] Applied {version}")
 
     conn.close()
     print("All migrations applied!")

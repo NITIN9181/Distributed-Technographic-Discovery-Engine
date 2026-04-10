@@ -23,12 +23,8 @@ def train_model(
         print("No training data provided.")
         return
         
-    print("Loading base model...")
-    try:
-        nlp = spacy.load("en_core_web_sm")
-    except OSError:
-        # Fallback to creating a blank model if en_core_web_sm isn't installed
-        nlp = spacy.blank("en")
+    print("Using blank English model for testing...")
+    nlp = spacy.blank("en")
     
     # Add custom NER labels
     if "ner" not in nlp.pipe_names:
